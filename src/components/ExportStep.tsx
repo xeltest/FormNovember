@@ -827,7 +827,7 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
 
 <DialogDescription className="text-center space-y-4 pt-4">
   <p className="text-base">
-    Please send to <strong>support@xelondigital.com</strong>
+    Please send to <strong>submissions@xelondigital.com</strong>
   </p>
 
   <p className="text-base">
