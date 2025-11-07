@@ -3,6 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { CheckCircle, AlertCircle, Music, Users, Globe, Upload, Download, FileArchive } from 'lucide-react';
 import { ReleaseData, TrackData } from '@/pages/Index';
 import JSZip from 'jszip';
@@ -16,6 +23,7 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
   const [exportComplete, setExportComplete] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const validateData = () => {
     const issues = [];
@@ -575,6 +583,7 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
       URL.revokeObjectURL(url);
 
       setExportComplete(true);
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('Error creating ZIP:', error);
       alert('Error creating ZIP file. Please try again.');
@@ -803,22 +812,52 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
             )}
           </Button>
 
-          <Button
-            onClick={handleExport}
-            disabled={isExporting || validateData().length > 0}
-            className="flex items-center bg-green-500 hover:bg-green-600"
-          >
-            {isExporting ? (
-              <>Processing...</>
-            ) : (
-              <>
-                <Download className="w-4 h-4 mr-2" />
-                Export All (ZIP)
-              </>
-            )}
-          </Button>
+        
         </div>
       </div>
+
+      {/* Success Modal */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-bold text-orange-800 flex items-center justify-center">
+  <CheckCircle className="w-6 h-6 mr-2" />
+  You're Almost There!
+</DialogTitle>
+
+<DialogDescription className="text-center space-y-4 pt-4">
+  <p className="text-base">
+    Please send to <strong>support@xelondigital.com</strong>
+  </p>
+
+  <p className="text-base">
+    Don’t forget to submit your <a href="https://airtable.com/appncstxdoakDSeBs/pagq9v5PHhRqVqB9N/form" className="text-orange-700 underline">pitch form</a> ASAP to give your music the best chance at platforms
+  </p>
+
+  <p className="text-base">
+    If you need more tips on how to approach your release, check out our <a href="https://drive.google.com/file/d/1sK3GYvMjf7P7eM5EXTaHtPo8Z3sh84hi/view?usp=sharing" className="text-orange-700 underline">resources</a>
+  </p>
+
+  <p className="text-base">
+    For any other needs please contact <strong>support@xelondigital.com</strong>
+  </p>
+
+  <p className="text-base">
+    We can’t wait to get to work on your release!
+  </p>
+</DialogDescription>
+
+          </DialogHeader>
+          <div className="flex justify-center pt-4">
+            <Button 
+              onClick={() => setShowSuccessModal(false)}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

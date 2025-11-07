@@ -361,7 +361,7 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
                 <p className="text-sm text-foreground">
                   {data.artwork ? data.artwork.name : 'Click to upload or drag and drop'}
                 </p>
-                <p className="text-xs text-muted-foreground">JPEG, PNG (Max 30MB)</p>
+                <p className="text-xs text-muted-foreground">RGB JPG Format 3000 x 3000 pixels</p>
                 <input
                   id="artwork-upload"
                   type="file"

@@ -109,7 +109,7 @@ const TrackMetadataSection = ({ track, onChange }: TrackMetadataSectionProps) =>
             <p className="text-sm text-gray-600">
               {track.audioFile ? track.audioFile.name : 'Select audio file for this track'}
             </p>
-            <p className="text-xs text-gray-500">WAV, FLAC, MP3 (Max 80MB)</p>
+            <p className="text-xs text-gray-500">WAV (Minimum 16bit 44.1kHz)</p>
             <input
               id="audio-upload"
               type="file"

@@ -215,7 +215,7 @@ const Index = () => {
             Previous
           </Button>
           
-          {currentStep < 3 ? (
+          {currentStep < 3 && (
             <Button
               onClick={handleNext}
               disabled={!canProceed(currentStep)}
@@ -223,17 +223,6 @@ const Index = () => {
             >
               Next
               <ChevronRight className="w-4 h-4 ml-2" />
-            </Button>
-          ) : (
-            <Button
-              onClick={() => {
-                // Handle export/submission
-                console.log('Exporting release:', { releaseData, tracks });
-              }}
-              className="flex items-center bg-green-500 hover:bg-green-600"
-            >
-              Export Release
-              <Download className="w-4 h-4 ml-2" />
             </Button>
           )}
         </div>
