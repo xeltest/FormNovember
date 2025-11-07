@@ -94,7 +94,7 @@ const ContributorsSection = ({ track, onChange }: ContributorsSectionProps) => {
             </div>
             
             {track[category].map((contributor, index) => (
-              <div key={index} className="border rounded-lg p-4 space-y-3 bg-gray-50">
+              <div key={index} className="border rounded-lg p-4 space-y-3 bg-muted/30">
                 <div className="flex items-center space-x-2">
                   <Input
                     value={contributor.name}
