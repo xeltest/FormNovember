@@ -831,7 +831,7 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
   </p>
 
   <p className="text-base">
-    Don’t forget to submit your <a href="https://airtable.com/appncstxdoakDSeBs/pagq9v5PHhRqVqB9N/form" className="text-orange-700 underline">pitch form</a> ASAP to give your music the best chance at platforms
+    Don’t forget to submit our <a href="https://airtable.com/appncstxdoakDSeBs/pagq9v5PHhRqVqB9N/form" className="text-orange-700 underline">pitch form</a> ASAP to give your music the best chance at platforms
   </p>
 
   <p className="text-base">
