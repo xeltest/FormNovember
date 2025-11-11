@@ -91,7 +91,46 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
     });
     return fileCount;
   };
+  const buildPitchFormUrl = () => {
+    const baseUrl = "https://airtable.com/appncstxdoakDSeBs/pagq9v5PHhRqVqB9N/form";
 
+    // Calculate release type based on track count
+    let releaseType = "Single";
+    const trackCount = tracks.length;
+    if (trackCount === 2) {
+      releaseType = "Double Single";
+    } else if (trackCount >= 3 && trackCount <= 7) {
+      releaseType = "EP";
+    } else if (trackCount >= 8) {
+      releaseType = "Album";
+    }
+
+    // Build release title with mix version if present
+    const fullReleaseTitle = releaseData.mixVersion
+      ? `${releaseData.title} (${releaseData.mixVersion})`
+      : releaseData.title;
+
+    // Join artists with commas, filtering out empty values
+    const artistNames = releaseData.artists.filter(a => a).join(', ');
+
+    // Use originalReleaseDate if present, otherwise use releaseDate
+    const releaseDate = releaseData.originalReleaseDate || releaseData.releaseDate;
+
+    // Get language from first track (or empty string if no tracks)
+    const language = tracks[0]?.language || '';
+
+    // Build URL parameters
+    const params = new URLSearchParams();
+    if (artistNames) params.append('prefill_Artist Name', artistNames);
+    if (releaseData.labelName) params.append('prefill_Label', releaseData.labelName);
+    if (fullReleaseTitle) params.append('prefill_Release Title', fullReleaseTitle);
+    if (releaseData.albumGenre) params.append('prefill_Genre', releaseData.albumGenre);
+    if (releaseDate) params.append('prefill_Release Date', releaseDate);
+    if (language) params.append('prefill_What language(s) are the lyrics in?', language);
+    params.append('prefill_Release Type (Single/EP/Album)', releaseType);
+
+    return `${baseUrl}?${params.toString()}`;
+  };
   // Convert country names to ISO 2-letter codes
   const countryToISO: { [key: string]: string } = {
     'United States': 'US',
@@ -1057,7 +1096,7 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
   </p>
 
   <p className="text-base">
-    Don’t forget to submit our <a href="https://airtable.com/appncstxdoakDSeBs/pagq9v5PHhRqVqB9N/form" className="text-orange-700 underline">pitch form</a> ASAP to give your music the best chance at platforms
+    Don’t forget to submit our <a href={buildPitchFormUrl()} className="text-orange-700 underline">pitch form</a> ASAP to give your music the best chance at platforms
   </p>
 
   <p className="text-base">
