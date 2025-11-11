@@ -1096,11 +1096,11 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
   </p>
 
   <p className="text-base">
-    Don’t forget to submit our <a href={buildPitchFormUrl()} className="text-orange-700 underline">pitch form</a> ASAP to give your music the best chance at platforms
+    Don't forget to submit our <a href={buildPitchFormUrl()} target="_blank" rel="noopener noreferrer" className="text-orange-700 underline">pitch form</a> ASAP to give your music the best chance at platforms
   </p>
 
   <p className="text-base">
-    If you need more tips on how to approach your release, check out our <a href="https://drive.google.com/file/d/1sK3GYvMjf7P7eM5EXTaHtPo8Z3sh84hi/view?usp=sharing" className="text-orange-700 underline">resources</a>
+    If you need more tips on how to approach your release, check out our <a href="https://drive.google.com/file/d/1sK3GYvMjf7P7eM5EXTaHtPo8Z3sh84hi/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="text-orange-700 underline">resources</a>
   </p>
 
   <p className="text-base">
