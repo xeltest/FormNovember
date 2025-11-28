@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { X, ChevronRight } from 'lucide-react';
+import { X, ChevronRight, Check } from 'lucide-react';
 import { GENRES, GenreNode, findGenreByLabel } from '@/constants/genres';
 
 interface GenreSelectorProps {
@@ -117,11 +117,24 @@ export const GenreSelector: React.FC<GenreSelectorProps> = ({
     const selectedGenre = GENRES.find(g => g.id === genreId);
     if (selectedGenre?.children && selectedGenre.children.length > 0) {
       setLevel2Options(selectedGenre.children);
-      // Don't emit value yet - wait for level 2 selection
+      // Don't emit value yet - just show children options
     } else {
       // No children - this is a leaf node, emit only the label
       setLevel2Options([]);
       onValueChange(selectedGenre?.label || '');
+    }
+  };
+
+  // Handle "Use this genre" button for level 1
+  const handleUseLevel1 = () => {
+    const selectedGenre = GENRES.find(g => g.id === level1Selection);
+    if (selectedGenre) {
+      // Clear deeper selections and emit this level's genre
+      setLevel2Selection('');
+      setLevel3Selection('');
+      setLevel2Options([]);
+      setLevel3Options([]);
+      onValueChange(selectedGenre.label);
     }
   };
 
@@ -133,11 +146,22 @@ export const GenreSelector: React.FC<GenreSelectorProps> = ({
     const selectedLevel2 = level2Options.find(g => g.id === genreId);
     if (selectedLevel2?.children && selectedLevel2.children.length > 0) {
       setLevel3Options(selectedLevel2.children);
-      // Don't emit value yet - wait for level 3 selection
+      // Don't emit value yet - just show children options
     } else {
       // No children - this is a leaf node, emit only the label
       setLevel3Options([]);
       onValueChange(selectedLevel2?.label || '');
+    }
+  };
+
+  // Handle "Use this genre" button for level 2
+  const handleUseLevel2 = () => {
+    const selectedGenre = level2Options.find(g => g.id === level2Selection);
+    if (selectedGenre) {
+      // Clear deeper selections and emit this level's genre
+      setLevel3Selection('');
+      setLevel3Options([]);
+      onValueChange(selectedGenre.label);
     }
   };
 
@@ -192,7 +216,7 @@ export const GenreSelector: React.FC<GenreSelectorProps> = ({
       )}
 
       {/* Level 1: Parent Genre */}
-      <div>
+      <div className="space-y-2">
         <Select value={level1Selection} onValueChange={handleLevel1Change}>
           <SelectTrigger id={id || 'genre-selector'}>
             <SelectValue placeholder={placeholder} />
@@ -210,14 +234,28 @@ export const GenreSelector: React.FC<GenreSelectorProps> = ({
             ))}
           </SelectContent>
         </Select>
+
+        {/* Show "Use this genre" button if level 1 has children and is selected */}
+        {level1Selection && level2Options.length > 0 && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleUseLevel1}
+            className="w-full text-sm flex items-center justify-center gap-2 border-green-200 hover:bg-green-50 hover:border-green-300"
+          >
+            <Check className="h-4 w-4 text-green-600" />
+            Use "{GENRES.find(g => g.id === level1Selection)?.label}" as final selection
+          </Button>
+        )}
       </div>
 
       {/* Level 2: Subgenre */}
       {level2Options.length > 0 && (
-        <div className="pl-4 border-l-2 border-muted">
+        <div className="pl-4 border-l-2 border-muted space-y-2">
           <Select value={level2Selection} onValueChange={handleLevel2Change}>
             <SelectTrigger>
-              <SelectValue placeholder="Select subgenre" />
+              <SelectValue placeholder="Select subgenre (or use parent genre above)" />
             </SelectTrigger>
             <SelectContent>
               {level2Options.map(genre => (
@@ -232,6 +270,20 @@ export const GenreSelector: React.FC<GenreSelectorProps> = ({
               ))}
             </SelectContent>
           </Select>
+
+          {/* Show "Use this genre" button if level 2 has children and is selected */}
+          {level2Selection && level3Options.length > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleUseLevel2}
+              className="w-full text-sm flex items-center justify-center gap-2 border-green-200 hover:bg-green-50 hover:border-green-300"
+            >
+              <Check className="h-4 w-4 text-green-600" />
+              Use "{level2Options.find(g => g.id === level2Selection)?.label}" as final selection
+            </Button>
+          )}
         </div>
       )}
 
@@ -240,7 +292,7 @@ export const GenreSelector: React.FC<GenreSelectorProps> = ({
         <div className="pl-8 border-l-2 border-muted">
           <Select value={level3Selection} onValueChange={handleLevel3Change}>
             <SelectTrigger>
-              <SelectValue placeholder="Select sub-subgenre" />
+              <SelectValue placeholder="Select sub-subgenre (or use parent genre above)" />
             </SelectTrigger>
             <SelectContent>
               {level3Options.map(genre => (
