@@ -8,13 +8,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, X, Upload } from 'lucide-react';
-import { ReleaseData } from '@/pages/Index';
+import { Plus, X, Upload, AlertCircle } from 'lucide-react';
+import { ReleaseData, TrackData } from '@/pages/Index';
 import { GenreSelector } from '@/components/GenreSelector';
+import ImportFromZip from '@/components/ImportFromZip';
+import { areAssetsMandatory } from '@/lib/assetValidation';
+import { FieldTooltip } from '@/components/ui/FieldTooltip';
 
 interface ReleaseInfoProps {
   data: ReleaseData;
   onChange: (data: ReleaseData) => void;
+  onImport: (importedData: { release: ReleaseData; tracks: TrackData[] }) => void;
+  showValidation: boolean;
 }
 
 const continents = {
@@ -29,7 +34,7 @@ const continents = {
 // All individual countries for the dropdown
 const allCountries = Object.values(continents).flat().sort();
 
-const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
+const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoProps) => {
   const [showMixVersion, setShowMixVersion] = useState(!!data.mixVersion);
   const [showFeaturedArtists, setShowFeaturedArtists] = useState(data.featuredArtists.length > 0);
   const [showRemixers, setShowRemixers] = useState(data.remixers.length > 0);
@@ -124,8 +129,11 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-foreground">Release Information</h2>
-      
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-foreground">Release Information</h2>
+        <ImportFromZip onImport={onImport} />
+      </div>
+
       {/* Release Identification */}
       <Card>
         <CardHeader>
@@ -133,7 +141,12 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="title">Release Title *</Label>
+            <FieldTooltip
+              label="Release Title"
+              fieldKey="releaseTitle"
+              htmlFor="title"
+              required
+            />
             <Input
               id="title"
               value={data.title}
@@ -155,7 +168,11 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
           ) : (
             <div className="flex items-center space-x-2">
               <div className="flex-1">
-                <Label htmlFor="mixVersion">Release Mix/Version</Label>
+                <FieldTooltip
+                  label="Release Mix/Version"
+                  fieldKey="releaseMixVersion"
+                  htmlFor="mixVersion"
+                />
                 <Input
                   id="mixVersion"
                   value={data.mixVersion || ''}
@@ -186,7 +203,11 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>Release Artist(s) *</Label>
+            <FieldTooltip
+              label="Release Artist(s)"
+              fieldKey="releaseArtist"
+              required
+            />
             {data.artists.map((artist, index) => (
               <div key={index} className="flex items-center space-x-2 mt-2">
                 <Input
@@ -230,7 +251,10 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
             </Button>
           ) : (
             <div>
-              <Label>Featured Artist(s)</Label>
+              <FieldTooltip
+                label="Featured Artist(s)"
+                fieldKey="featuredArtist"
+              />
               {data.featuredArtists.map((artist, index) => (
                 <div key={index} className="flex items-center space-x-2 mt-2">
                   <Input
@@ -273,7 +297,10 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
             </Button>
           ) : (
             <div>
-              <Label>Remixer(s)</Label>
+              <FieldTooltip
+                label="Remixer(s)"
+                fieldKey="remixer"
+              />
               {data.remixers.map((artist, index) => (
                 <div key={index} className="flex items-center space-x-2 mt-2">
                   <Input
@@ -309,7 +336,12 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="releaseDate">Release Date *</Label>
+              <FieldTooltip
+                label="Release Date"
+                fieldKey="releaseDate"
+                htmlFor="releaseDate"
+                required
+              />
               <Input
                 id="releaseDate"
                 type="date"
@@ -317,20 +349,29 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
                 onChange={(e) => updateData({ releaseDate: e.target.value })}
               />
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="rerelease"
                 checked={data.isReRelease}
                 onCheckedChange={(checked) => updateData({ isReRelease: !!checked })}
               />
-              <Label htmlFor="rerelease">Is this a re-release?</Label>
+              <FieldTooltip
+                label="Is this a re-release?"
+                fieldKey="previouslyReleased"
+                htmlFor="rerelease"
+              />
             </div>
           </div>
-          
+
           {data.isReRelease && (
             <div>
-              <Label htmlFor="originalDate">Original Release Date *</Label>
+              <FieldTooltip
+                label="Original Release Date"
+                fieldKey="originalReleaseDate"
+                htmlFor="originalDate"
+                required
+              />
               <Input
                 id="originalDate"
                 type="date"
@@ -341,22 +382,39 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
           )}
 
           <div>
-            <Label>Release Artwork</Label>
+            <FieldTooltip
+              label="Release Artwork"
+              fieldKey="releaseArtwork"
+              required={areAssetsMandatory()}
+            />
             <div className="space-y-4">
-              <div 
+              <div
                 className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                  dragActive ? 'border-blue-400 bg-blue-50 dark:bg-blue-950' : 'border-border hover:border-foreground/20'
+                  dragActive
+                    ? 'border-blue-400 bg-blue-50 dark:bg-blue-950'
+                    : showValidation && areAssetsMandatory() && !data.artwork
+                    ? 'border-orange-400 bg-orange-50 dark:bg-orange-950 hover:border-orange-500'
+                    : 'border-border hover:border-foreground/20'
                 }`}
                 onClick={triggerFileInput}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
               >
-                <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                {showValidation && areAssetsMandatory() && !data.artwork ? (
+                  <AlertCircle className="w-8 h-8 mx-auto text-orange-500 mb-2" />
+                ) : (
+                  <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                )}
                 <p className="text-sm text-foreground">
                   {data.artwork ? data.artwork.name : 'Click to upload or drag and drop'}
                 </p>
                 <p className="text-xs text-muted-foreground">RGB JPG Format 3000 x 3000 pixels</p>
+                {showValidation && areAssetsMandatory() && !data.artwork && (
+                  <p className="text-xs text-orange-600 dark:text-orange-400 mt-2 font-medium">
+                    Artwork is required to proceed
+                  </p>
+                )}
                 <input
                   id="artwork-upload"
                   type="file"
@@ -368,13 +426,13 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
                   }}
                 />
               </div>
-              
+
               {artworkPreview && (
                 <div className="flex justify-center">
                   <div className="max-w-xs">
-                    <img 
-                      src={artworkPreview} 
-                      alt="Artwork preview" 
+                    <img
+                      src={artworkPreview}
+                      alt="Artwork preview"
                       className="w-full h-auto rounded-lg border"
                     />
                     <p className="text-sm text-muted-foreground text-center mt-2">Artwork Preview</p>
@@ -393,7 +451,12 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="labelName">Label Name *</Label>
+            <FieldTooltip
+              label="Label Name"
+              fieldKey="labelName"
+              htmlFor="labelName"
+              required
+            />
             <Input
               id="labelName"
               value={data.labelName}
@@ -401,7 +464,7 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
               placeholder="Record label name"
             />
           </div>
-          
+
           <div>
             <GenreSelector
               id="albumGenre"
@@ -409,12 +472,17 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
               value={data.albumGenre}
               onValueChange={(value) => updateData({ albumGenre: value })}
               placeholder="Select album genre"
+              showTooltip
             />
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="catalogNumber">Catalog Number</Label>
+              <FieldTooltip
+                label="Catalog Number"
+                fieldKey="catalogNumber"
+                htmlFor="catalogNumber"
+              />
               <Input
                 id="catalogNumber"
                 value={data.catalogNumber || ''}
@@ -423,7 +491,11 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
               />
             </div>
             <div>
-              <Label htmlFor="upc">UPC (Barcode)</Label>
+              <FieldTooltip
+                label="UPC (Barcode)"
+                fieldKey="upc"
+                htmlFor="upc"
+              />
               <Input
                 id="upc"
                 value={data.upc || ''}
@@ -442,7 +514,12 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="albumCLine">Album C Line *</Label>
+            <FieldTooltip
+              label="Album C Line"
+              fieldKey="albumCLine"
+              htmlFor="albumCLine"
+              required
+            />
             <Input
               id="albumCLine"
               value={data.albumCLine}
@@ -451,7 +528,12 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
             />
           </div>
           <div>
-            <Label htmlFor="albumPLine">Album P Line *</Label>
+            <FieldTooltip
+              label="Album P Line"
+              fieldKey="albumPLine"
+              htmlFor="albumPLine"
+              required
+            />
             <Input
               id="albumPLine"
               value={data.albumPLine}
@@ -480,7 +562,10 @@ const ReleaseInfo = ({ data, onChange }: ReleaseInfoProps) => {
           {!data.isWorldwide && (
             <div className="space-y-4">
               <div className="space-y-3">
-                <Label>Territory Mode:</Label>
+                <FieldTooltip
+                  label="Territory Mode:"
+                  fieldKey="territoryMode"
+                />
                 <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-3 bg-muted rounded-full p-1">
                     <div 

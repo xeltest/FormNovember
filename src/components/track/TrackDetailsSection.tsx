@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, X } from 'lucide-react';
 import { TrackData } from '@/pages/Index';
 import { GenreSelector } from '@/components/GenreSelector';
+import { FieldTooltip } from '@/components/ui/FieldTooltip';
 
 interface TrackDetailsSectionProps {
   track: TrackData;
@@ -41,7 +42,10 @@ const TrackDetailsSection = ({ track, onChange }: TrackDetailsSectionProps) => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label>Publisher(s)</Label>
+          <FieldTooltip
+            label="Publisher(s)"
+            fieldKey="publisher"
+          />
           {track.publishers.length === 0 ? (
             <Button 
               type="button" 
@@ -85,12 +89,17 @@ const TrackDetailsSection = ({ track, onChange }: TrackDetailsSectionProps) => {
             value={track.trackGenre}
             onValueChange={(value) => onChange({ trackGenre: value })}
             placeholder="Select track genre"
+            showTooltip
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="isrcCode">ISRC Code</Label>
+            <FieldTooltip
+              label="ISRC Code"
+              fieldKey="isrc"
+              htmlFor="isrcCode"
+            />
             <Input
               id="isrcCode"
               value={track.isrcCode || ''}
@@ -98,20 +107,28 @@ const TrackDetailsSection = ({ track, onChange }: TrackDetailsSectionProps) => {
               placeholder="e.g., USMC81234567"
             />
           </div>
-          
+
           <div className="flex items-center space-x-2 pt-6">
             <Checkbox
               id="dolbyAtmos"
               checked={track.dolbyAtmos}
               onCheckedChange={(checked) => onChange({ dolbyAtmos: !!checked })}
             />
-            <Label htmlFor="dolbyAtmos">Dolby Atmos</Label>
+            <FieldTooltip
+              label="Dolby Atmos"
+              fieldKey="dolbyAtmos"
+              htmlFor="dolbyAtmos"
+            />
           </div>
         </div>
 
         {track.dolbyAtmos && (
           <div>
-            <Label htmlFor="secondaryIsrc">Secondary ISRC (Dolby Atmos)</Label>
+            <FieldTooltip
+              label="Secondary ISRC (Dolby Atmos)"
+              fieldKey="secondaryIsrc"
+              htmlFor="secondaryIsrc"
+            />
             <Input
               id="secondaryIsrc"
               value={track.secondaryIsrc || ''}
@@ -123,7 +140,12 @@ const TrackDetailsSection = ({ track, onChange }: TrackDetailsSectionProps) => {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="language">Language *</Label>
+            <FieldTooltip
+              label="Language"
+              fieldKey="language"
+              htmlFor="language"
+              required
+            />
             <Select value={track.language} onValueChange={(value) => onChange({ language: value })}>
               <SelectTrigger>
                 <SelectValue />
@@ -135,9 +157,13 @@ const TrackDetailsSection = ({ track, onChange }: TrackDetailsSectionProps) => {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div>
-            <Label>Explicit Content *</Label>
+            <FieldTooltip
+              label="Explicit Content"
+              fieldKey="explicitContent"
+              required
+            />
             <div className="flex space-x-2 mt-2">
               {(['no', 'yes', 'cleaned'] as const).map(option => (
                 <Button
@@ -162,7 +188,11 @@ const TrackDetailsSection = ({ track, onChange }: TrackDetailsSectionProps) => {
         </div>
 
         <div>
-          <Label htmlFor="lyrics">Lyrics</Label>
+          <FieldTooltip
+            label="Lyrics"
+            fieldKey="lyrics"
+            htmlFor="lyrics"
+          />
           <Textarea
             id="lyrics"
             value={track.lyrics || ''}

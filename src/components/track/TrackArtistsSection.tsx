@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, X } from 'lucide-react';
 import { TrackData } from '@/pages/Index';
+import { FieldTooltip } from '@/components/ui/FieldTooltip';
 
 interface TrackArtistsSectionProps {
   track: TrackData;
@@ -46,7 +47,11 @@ const TrackArtistsSection = ({ track, onChange }: TrackArtistsSectionProps) => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label>Track Artist(s) *</Label>
+          <FieldTooltip
+            label="Track Artist(s)"
+            fieldKey="trackArtist"
+            required
+          />
           {track.artists.map((artist, index) => (
             <div key={index} className="flex items-center space-x-2 mt-2">
               <Input
@@ -90,7 +95,10 @@ const TrackArtistsSection = ({ track, onChange }: TrackArtistsSectionProps) => {
           </Button>
         ) : (
           <div>
-            <Label>Track Featured Artist(s)</Label>
+            <FieldTooltip
+              label="Track Featured Artist(s)"
+              fieldKey="trackFeaturedArtist"
+            />
             {track.featuredArtists.map((artist, index) => (
               <div key={index} className="flex items-center space-x-2 mt-2">
                 <Input
@@ -133,7 +141,10 @@ const TrackArtistsSection = ({ track, onChange }: TrackArtistsSectionProps) => {
           </Button>
         ) : (
           <div>
-            <Label>Track Remixer(s)</Label>
+            <FieldTooltip
+              label="Track Remixer(s)"
+              fieldKey="trackRemixer"
+            />
             {track.remixers.map((artist, index) => (
               <div key={index} className="flex items-center space-x-2 mt-2">
                 <Input

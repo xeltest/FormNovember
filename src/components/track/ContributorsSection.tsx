@@ -1,5 +1,3 @@
-
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, X } from 'lucide-react';
 import { TrackData } from '@/pages/Index';
+import { FieldTooltip } from '@/components/ui/FieldTooltip';
 
 interface ContributorsSectionProps {
   track: TrackData;
@@ -72,6 +71,15 @@ const ContributorsSection = ({ track, onChange }: ContributorsSectionProps) => {
     }
   };
 
+  const getFieldKey = (category: string) => {
+    switch (category) {
+      case 'performers': return 'performers' as const;
+      case 'composition': return 'composition' as const;
+      case 'production': return 'production' as const;
+      default: return 'performers' as const;
+    }
+  };
+
   const getAddButtonLabel = (category: string) => {
     switch (category) {
       case 'performers': return 'Add Performer';
@@ -90,7 +98,11 @@ const ContributorsSection = ({ track, onChange }: ContributorsSectionProps) => {
         {(['performers', 'composition', 'production'] as const).map(category => (
           <div key={category} className="space-y-4">
             <div className="border-l-4 border-blue-500 pl-4">
-              <h4 className="font-semibold text-lg">{getSectionTitle(category)} *</h4>
+              <FieldTooltip
+                label={getSectionTitle(category)}
+                fieldKey={getFieldKey(category)}
+                required
+              />
             </div>
             
             {track[category].map((contributor, index) => (
