@@ -164,7 +164,7 @@ export const GenreSelector: React.FC<GenreSelectorProps> = ({
   return (
     <div className="space-y-3">
       {label && !showTooltip && (
-        <Label htmlFor={id || 'genre-selector'}>{label}</Label>
+        <Label htmlFor={id || 'genre-selector'} className="mb-3 block">{label}</Label>
       )}
       {label && showTooltip && (
         <FieldTooltip

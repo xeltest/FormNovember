@@ -40,7 +40,7 @@ export const FieldTooltip: React.FC<FieldTooltipProps> = ({
   const content = tooltipText || (fieldKey ? tooltipContent[fieldKey] : '');
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center gap-1.5 mb-3">
       <label
         htmlFor={htmlFor}
         className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${className}`}

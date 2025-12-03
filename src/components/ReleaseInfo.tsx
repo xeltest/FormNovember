@@ -137,12 +137,12 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
       {/* Release Identification */}
       <Card>
         <CardHeader>
-          <CardTitle>Release Identification</CardTitle>
+          <CardTitle>Release Title</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <FieldTooltip
-              label="Release Title"
+              label="Release Title" 
               fieldKey="releaseTitle"
               htmlFor="title"
               required
@@ -556,7 +556,7 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
               checked={data.isWorldwide}
               onCheckedChange={(checked) => updateData({ isWorldwide: !!checked })}
             />
-            <Label htmlFor="worldwide">Release worldwide</Label>
+            <Label htmlFor="worldwide" className="mb-0">Release worldwide</Label>
           </div>
           
           {!data.isWorldwide && (
@@ -594,7 +594,7 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
               </div>
               
               <div>
-                <Label>Quick Select by Continent:</Label>
+                <Label className="mb-3 block">Quick Select by Continent:</Label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {Object.keys(continents).map(continent => (
                     <Button
@@ -611,7 +611,7 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
               </div>
 
               <div>
-                <Label>Add Individual Territory:</Label>
+                <Label className="mb-3 block">Add Individual Territory:</Label>
                 <Select onValueChange={addIndividualTerritory}>
                   <SelectTrigger className="mt-2">
                     <SelectValue placeholder="Select a territory" />
@@ -632,7 +632,7 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
               
               {data.territories.length > 0 && (
                 <div>
-                  <Label>Selected Territories:</Label>
+                  <Label className="mb-3 block">Selected Territories:</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {data.territories.map(territory => (
                       <Badge 
