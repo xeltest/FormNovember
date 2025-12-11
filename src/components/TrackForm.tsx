@@ -10,9 +10,10 @@ interface TrackFormProps {
   track: TrackData;
   onChange: (track: TrackData) => void;
   releaseData: ReleaseData;
+  showValidation: boolean;
 }
 
-const TrackForm = ({ track, onChange, releaseData }: TrackFormProps) => {
+const TrackForm = ({ track, onChange, releaseData, showValidation }: TrackFormProps) => {
   const updateTrack = (updates: Partial<TrackData>) => {
     onChange({ ...track, ...updates });
   };
@@ -26,7 +27,7 @@ const TrackForm = ({ track, onChange, releaseData }: TrackFormProps) => {
 
   return (
     <div className="space-y-6">
-      <TrackMetadataSection track={track} onChange={updateTrack} />
+      <TrackMetadataSection track={track} onChange={updateTrack} showValidation={showValidation} />
       <TrackArtistsSection track={track} onChange={updateTrack} />
       <ContributorsSection track={track} onChange={updateTrack} />
       <TrackDetailsSection track={track} onChange={updateTrack} />

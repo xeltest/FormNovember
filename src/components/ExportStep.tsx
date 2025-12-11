@@ -10,9 +10,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { CheckCircle, AlertCircle, Music, Users, Globe, Upload, Download, FileArchive } from 'lucide-react';
+import { CheckCircle, AlertCircle, Music, Users, Globe, Upload, Download, FileArchive, Mail } from 'lucide-react';
 import { ReleaseData, TrackData } from '@/pages/Index';
 import JSZip from 'jszip';
+import { validateAllAssets, getAssetValidationMessage } from '@/lib/assetValidation';
+import { getExportLabel } from '@/constants/genres';
 
 interface ExportStepProps {
   releaseData: ReleaseData;
@@ -27,7 +29,17 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
 
   const validateData = () => {
     const issues = [];
-    
+
+    // Asset validation (artwork + audio files)
+    const assetValidation = validateAllAssets(releaseData, tracks);
+    if (assetValidation.missingArtwork) {
+      issues.push('Release artwork is required');
+    }
+    if (assetValidation.missingAudioTracks.length > 0) {
+      const message = getAssetValidationMessage(false, assetValidation.missingAudioTracks);
+      if (message) issues.push(message);
+    }
+
     // Release validation
     if (!releaseData.title) issues.push('Release title is required');
     if (!releaseData.artists[0]) issues.push('At least one release artist is required');
@@ -36,22 +48,22 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
     if (!releaseData.albumGenre) issues.push('Album genre is required');
     if (!releaseData.albumCLine) issues.push('Album C Line is required');
     if (!releaseData.albumPLine) issues.push('Album P Line is required');
-    
+
     // Track validation
     tracks.forEach((track, index) => {
       if (!track.title) issues.push(`Track ${index + 1}: Title is required`);
       if (!track.artists[0]) issues.push(`Track ${index + 1}: At least one artist is required`);
       if (!track.trackGenre) issues.push(`Track ${index + 1}: Genre is required`);
-      
+
       const hasPerformer = track.performers.some(p => p.name && p.roles.length > 0);
       const hasComposer = track.composition.some(c => c.name && c.roles.length > 0);
       const hasProducer = track.production.some(p => p.name && p.roles.length > 0);
-      
+
       if (!hasPerformer) issues.push(`Track ${index + 1}: At least one performer with role is required`);
       if (!hasComposer) issues.push(`Track ${index + 1}: At least one composer/writer with role is required`);
       if (!hasProducer) issues.push(`Track ${index + 1}: At least one producer/engineer with role is required`);
     });
-    
+
     return issues;
   };
 
@@ -91,7 +103,46 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
     });
     return fileCount;
   };
+  const buildPitchFormUrl = () => {
+    const baseUrl = "https://airtable.com/appncstxdoakDSeBs/pagq9v5PHhRqVqB9N/form";
 
+    // Calculate release type based on track count
+    let releaseType = "Single";
+    const trackCount = tracks.length;
+    if (trackCount === 2) {
+      releaseType = "Double Single";
+    } else if (trackCount >= 3 && trackCount <= 7) {
+      releaseType = "EP";
+    } else if (trackCount >= 8) {
+      releaseType = "Album";
+    }
+
+    // Build release title with mix version if present
+    const fullReleaseTitle = releaseData.mixVersion
+      ? `${releaseData.title} (${releaseData.mixVersion})`
+      : releaseData.title;
+
+    // Join artists with commas, filtering out empty values
+    const artistNames = releaseData.artists.filter(a => a).join(', ');
+
+    // Use originalReleaseDate if present, otherwise use releaseDate
+    const releaseDate = releaseData.originalReleaseDate || releaseData.releaseDate;
+
+    // Get language from first track (or empty string if no tracks)
+    const language = tracks[0]?.language || '';
+
+    // Build URL parameters
+    const params = new URLSearchParams();
+    if (artistNames) params.append('prefill_Artist Name', artistNames);
+    if (releaseData.labelName) params.append('prefill_Label', releaseData.labelName);
+    if (fullReleaseTitle) params.append('prefill_Release Title', fullReleaseTitle);
+    if (releaseData.albumGenre) params.append('prefill_Genre', getExportLabel(releaseData.albumGenre));
+    if (releaseDate) params.append('prefill_Release Date', releaseDate);
+    if (language) params.append('prefill_What language(s) are the lyrics in?', language);
+    params.append('prefill_Release Type (Single/EP/Album)', releaseType);
+
+    return `${baseUrl}?${params.toString()}`;
+  };
   // Convert country names to ISO 2-letter codes
   const countryToISO: { [key: string]: string } = {
     'United States': 'US',
@@ -397,7 +448,7 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
       'Sample Start Time',
       'Filename',
       'Explict Content',
-      'Must Remain Bundled/\nNot for Individual Sale',
+      'Must Remain Bundled/Not for Individual Sale',
       'ALBUM C LINE',
       'ALBUM P LINE',
       'Territory',
@@ -542,7 +593,7 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
         track.secondaryIsrc || '', // Secondary ISRC code
         track.language, // Language
         '', // Duration - leave blank
-        track.trackGenre, // Sub-Genre
+        getExportLabel(track.trackGenre), // Sub-Genre
         track.publishers.join('|'), // Publisher
         '', // Sample Start Time - leave blank
         track.audioFile?.name || '', // Filename
@@ -552,9 +603,9 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
         releaseData.albumPLine, // ALBUM P LINE
         territories.included, // Territory
         territories.excluded, // Excluded Territory
-        releaseData.albumGenre, // Album Genre
+        getExportLabel(releaseData.albumGenre), // Album Genre
         '', // Public Domain - leave blank
-        track.trackGenre, // Genre
+        getExportLabel(track.trackGenre), // Genre
         'N', // Make Featured Artist Primary on Spotify
         'N', // Make Remixer Primary on Spotify
         track.lyrics || '', // Lyrics
@@ -739,7 +790,7 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
           row.getCell(32).value = track.secondaryIsrc || '';
           row.getCell(33).value = track.language;
           row.getCell(34).value = '';
-          row.getCell(35).value = track.trackGenre;
+          row.getCell(35).value = getExportLabel(track.trackGenre);
           row.getCell(36).value = track.publishers.join('|');
           row.getCell(37).value = '';
           row.getCell(38).value = track.audioFile?.name || '';
@@ -749,10 +800,10 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
           row.getCell(42).value = releaseData.albumPLine;
           row.getCell(43).value = territories.included;
           row.getCell(44).value = territories.excluded;
-          row.getCell(45).value = releaseData.albumGenre;
+          row.getCell(45).value = getExportLabel(releaseData.albumGenre);
           row.getCell(46).value = '';
           row.getCell(47).value = '';
-          row.getCell(48).value = track.trackGenre;
+          row.getCell(48).value = getExportLabel(track.trackGenre);
           row.getCell(49).value = 'N';
           row.getCell(50).value = 'N';
           row.getCell(51).value = track.lyrics || '';
@@ -985,6 +1036,68 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
         </CardContent>
       </Card>
 
+      {/* Submission Instructions - Always Visible */}
+      <Card className="border-orange-200 bg-orange-50">
+        <CardHeader>
+          <CardTitle className="flex items-center text-orange-800">
+            <Mail className="w-5 h-5 mr-2" />
+            Submission Instructions
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <h4 className="font-medium text-gray-900 mb-1">Submit Your Release</h4>
+            <p className="text-sm text-gray-700">
+              Please send your downloaded package to <strong className="text-orange-800">submissions@xelondigital.com</strong>
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-gray-900 mb-1">Complete the Pitch Form</h4>
+            <p className="text-sm text-gray-700">
+              Don't forget to submit our{' '}
+              <a
+                href={buildPitchFormUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-orange-700 underline hover:text-orange-800 font-medium"
+              >
+                pitch form
+              </a>
+              {' '}ASAP to give your music the best chance at platforms
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-gray-900 mb-1">Release Resources</h4>
+            <p className="text-sm text-gray-700">
+              If you need more tips on how to approach your release, check out our{' '}
+              <a
+                href="https://drive.google.com/file/d/1sK3GYvMjf7P7eM5EXTaHtPo8Z3sh84hi/view?usp=sharing"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-orange-700 underline hover:text-orange-800 font-medium"
+              >
+                resources
+              </a>
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-gray-900 mb-1">Need Help?</h4>
+            <p className="text-sm text-gray-700">
+              For any other needs please contact <strong className="text-orange-800">support@xelondigital.com</strong>
+            </p>
+          </div>
+
+          <div className="pt-2 border-t border-orange-200">
+            <p className="text-sm text-center text-orange-800 font-medium">
+              We can't wait to get to work on your release!
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Export Process */}
       {isExporting && (
         <Card>
@@ -1017,11 +1130,7 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
       )}
 
       {/* Export Actions */}
-      <div className="flex justify-between">
-        <Button variant="outline" disabled={isExporting}>
-          Back to Tracks
-        </Button>
-        
+      <div className="flex justify-end">
         <div className="flex gap-2">
           <Button
             onClick={handleDownloadZip}
@@ -1057,11 +1166,11 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
   </p>
 
   <p className="text-base">
-    Don’t forget to submit our <a href="https://airtable.com/appncstxdoakDSeBs/pagq9v5PHhRqVqB9N/form" className="text-orange-700 underline">pitch form</a> ASAP to give your music the best chance at platforms
+    Don't forget to submit our <a href={buildPitchFormUrl()} target="_blank" rel="noopener noreferrer" className="text-orange-700 underline">pitch form</a> ASAP to give your music the best chance at platforms
   </p>
 
   <p className="text-base">
-    If you need more tips on how to approach your release, check out our <a href="https://drive.google.com/file/d/1sK3GYvMjf7P7eM5EXTaHtPo8Z3sh84hi/view?usp=sharing" className="text-orange-700 underline">resources</a>
+    If you need more tips on how to approach your release, check out our <a href="https://drive.google.com/file/d/1sK3GYvMjf7P7eM5EXTaHtPo8Z3sh84hi/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="text-orange-700 underline">resources</a>
   </p>
 
   <p className="text-base">

@@ -1,15 +1,4 @@
-// Hierarchical genre structure for music categorization
-// Supports up to 3 levels: Genre > Subgenre > Sub-subgenre
-
-export interface GenreNode {
-  id: string;
-  label: string;
-  exportLabel?: string; // Optional: Different name for CSV/Excel exports
-  children?: GenreNode[];
-  searchTerms?: string[]; // Additional terms for search/filtering
-}
-
-export const GENRES: GenreNode[] = [
+[
   {
     "id": "blues-jazz",
     "label": "Blues/Jazz",
@@ -151,6 +140,11 @@ export const GENRES: GenreNode[] = [
             "id": "hot-jazz",
             "label": "Hot Jazz",
             "exportLabel": "Hot Jazz"
+          },
+          {
+            "id": "jazz-blues",
+            "label": "Jazz Blues",
+            "exportLabel": "Jazz Blues"
           },
           {
             "id": "jazz-blues",
@@ -1236,6 +1230,11 @@ export const GENRES: GenreNode[] = [
         "exportLabel": "Pop/Hip Hop"
       },
       {
+        "id": "pop-rock",
+        "label": "Pop/Rock",
+        "exportLabel": "Pop/Rock"
+      },
+      {
         "id": "traditional-pop",
         "label": "Traditional Pop",
         "exportLabel": "Traditional Pop"
@@ -1893,139 +1892,4 @@ export const GENRES: GenreNode[] = [
       }
     ]
   }
-];
-
-// Utility function to flatten genre tree for search
-export const flattenGenres = (genres: GenreNode[], parentPath: string[] = []): Array<{
-  id: string;
-  label: string;
-  path: string[];
-  fullPath: string;
-  searchTerms: string[];
-}> => {
-  const flattened: Array<{
-    id: string;
-    label: string;
-    path: string[];
-    fullPath: string;
-    searchTerms: string[];
-  }> = [];
-
-  genres.forEach(genre => {
-    const currentPath = [...parentPath, genre.label];
-    const fullPath = currentPath.join(' > ');
-
-    flattened.push({
-      id: genre.id,
-      label: genre.label,
-      path: currentPath,
-      fullPath,
-      searchTerms: [
-        genre.label.toLowerCase(),
-        ...(genre.searchTerms || []),
-        fullPath.toLowerCase()
-      ]
-    });
-
-    if (genre.children) {
-      flattened.push(...flattenGenres(genre.children, currentPath));
-    }
-  });
-
-  return flattened;
-};
-
-// Get all leaf nodes (selectable genres without children)
-export const getSelectableGenres = (genres: GenreNode[] = GENRES): Array<{
-  id: string;
-  label: string;
-  fullPath: string;
-}> => {
-  const selectable: Array<{
-    id: string;
-    label: string;
-    fullPath: string;
-  }> = [];
-
-  const traverse = (nodes: GenreNode[], parentPath: string[] = []) => {
-    nodes.forEach(node => {
-      const currentPath = [...parentPath, node.label];
-
-      if (!node.children || node.children.length === 0) {
-        // Leaf node - selectable
-        selectable.push({
-          id: node.id,
-          label: node.label,
-          fullPath: currentPath.join(' > ')
-        });
-      } else {
-        // Has children - traverse deeper
-        traverse(node.children, currentPath);
-      }
-    });
-  };
-
-  traverse(genres);
-  return selectable;
-};
-
-// Find a genre anywhere in the tree by its label (supports both leaf name and full path)
-export const findGenreByLabel = (
-  label: string,
-  genres: GenreNode[] = GENRES
-): {
-  genre: GenreNode;
-  path: string[];
-  parentSelections: { level: number; id: string; label: string }[];
-} | null => {
-  // Handle both "Tech House" and "Electronic > House > Tech House" formats
-  const searchLabel = label.includes(' > ') ? label.split(' > ').pop()?.trim() : label;
-
-  if (!searchLabel) return null;
-
-  const search = (
-    nodes: GenreNode[],
-    parentPath: string[] = [],
-    parentIds: { level: number; id: string; label: string }[] = [],
-    level: number = 1
-  ): {
-    genre: GenreNode;
-    path: string[];
-    parentSelections: { level: number; id: string; label: string }[];
-  } | null => {
-    for (const node of nodes) {
-      const currentPath = [...parentPath, node.label];
-      const currentParents = [...parentIds, { level, id: node.id, label: node.label }];
-
-      // Check if this node matches (case-insensitive)
-      if (node.label.toLowerCase() === searchLabel.toLowerCase()) {
-        return {
-          genre: node,
-          path: currentPath,
-          parentSelections: currentParents
-        };
-      }
-
-      // Search children
-      if (node.children) {
-        const result = search(node.children, currentPath, currentParents, level + 1);
-        if (result) return result;
-      }
-    }
-
-    return null;
-  };
-
-  return search(genres);
-};
-
-// Get the export label for a genre (uses exportLabel if defined, otherwise falls back to label)
-export const getExportLabel = (label: string, genres: GenreNode[] = GENRES): string => {
-  if (!label) return '';
-
-  const result = findGenreByLabel(label, genres);
-  if (!result) return label; // Fallback to original label if not found
-
-  // Return exportLabel if defined, otherwise use regular label
-  return result.genre.exportLabel || result.genre.label;
-};
+]

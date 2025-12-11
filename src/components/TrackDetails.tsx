@@ -8,9 +8,10 @@ interface TrackDetailsProps {
   tracks: TrackData[];
   onChange: (tracks: TrackData[]) => void;
   releaseData: ReleaseData;
+  showValidation: boolean;
 }
 
-const TrackDetails = ({ tracks, onChange, releaseData }: TrackDetailsProps) => {
+const TrackDetails = ({ tracks, onChange, releaseData, showValidation }: TrackDetailsProps) => {
   const [expandedTrack, setExpandedTrack] = useState<number>(0);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
@@ -155,6 +156,7 @@ const TrackDetails = ({ tracks, onChange, releaseData }: TrackDetailsProps) => {
             isExpanded={expandedTrack === index}
             tracksLength={tracks.length}
             releaseData={releaseData}
+            showValidation={showValidation}
             draggedIndex={draggedIndex}
             dragOverIndex={dragOverIndex}
             getTrackDisplayTitle={getTrackDisplayTitle}

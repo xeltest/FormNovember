@@ -11,6 +11,7 @@ interface TrackCardProps {
   isExpanded: boolean;
   tracksLength: number;
   releaseData: ReleaseData;
+  showValidation: boolean;
   draggedIndex: number | null;
   dragOverIndex: number | null;
   getTrackDisplayTitle: (track: TrackData, index: number) => string;
@@ -30,6 +31,7 @@ const TrackCard = ({
   isExpanded,
   tracksLength,
   releaseData,
+  showValidation,
   draggedIndex,
   dragOverIndex,
   getTrackDisplayTitle,
@@ -69,6 +71,7 @@ const TrackCard = ({
             track={track}
             onChange={onUpdateTrack}
             releaseData={releaseData}
+            showValidation={showValidation}
           />
         </CardContent>
       )}

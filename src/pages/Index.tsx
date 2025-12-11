@@ -2,11 +2,13 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, ChevronLeft, Music, Upload, Download } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Music, Upload, Download, AlertCircle } from 'lucide-react';
 import DarkModeToggle from '@/components/DarkModeToggle';
 import ReleaseInfo from '@/components/ReleaseInfo';
 import TrackDetails from '@/components/TrackDetails';
 import ExportStep from '@/components/ExportStep';
+import { validateAllAssets, getAssetValidationMessage, areAssetsMandatory } from '@/lib/assetValidation';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export interface ReleaseData {
   title: string;
@@ -51,6 +53,7 @@ export interface TrackData {
 
 const Index = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [attemptedProceed, setAttemptedProceed] = useState(false);
   const [releaseData, setReleaseData] = useState<ReleaseData>({
     title: '',
     artists: [''],
@@ -65,7 +68,7 @@ const Index = () => {
     isWorldwide: true,
     territories: []
   });
-  
+
   const [tracks, setTracks] = useState<TrackData[]>([{
     title: '',
     artists: [''],
@@ -89,7 +92,7 @@ const Index = () => {
 
   const validateStep = (step: number): boolean => {
     if (step === 1) {
-      return !!(
+      const basicValidation = !!(
         releaseData.title &&
         releaseData.artists[0] &&
         releaseData.releaseDate &&
@@ -99,10 +102,14 @@ const Index = () => {
         releaseData.albumPLine &&
         (!releaseData.isReRelease || releaseData.originalReleaseDate)
       );
+
+      // Check artwork validation for step 1
+      const assetValidation = validateAllAssets(releaseData, tracks);
+      return basicValidation && !assetValidation.missingArtwork;
     }
-    
+
     if (step === 2) {
-      return tracks.every(track => 
+      const basicValidation = tracks.every(track =>
         track.title &&
         track.artists[0] &&
         track.trackGenre &&
@@ -110,8 +117,12 @@ const Index = () => {
         track.composition.some(c => c.name && c.roles.length > 0) &&
         track.production.some(p => p.name && p.roles.length > 0)
       );
+
+      // Check audio files validation for step 2
+      const assetValidation = validateAllAssets(releaseData, tracks);
+      return basicValidation && assetValidation.missingAudioTracks.length === 0;
     }
-    
+
     return true;
   };
 
@@ -122,19 +133,46 @@ const Index = () => {
   const handleNext = () => {
     if (canProceed(currentStep) && currentStep < 3) {
       setCurrentStep(currentStep + 1);
+      setAttemptedProceed(false); // Reset validation attempt when successfully moving to next step
+    } else {
+      setAttemptedProceed(true); // Mark that user attempted to proceed
     }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+      setAttemptedProceed(false); // Reset validation attempt when going back
     }
+  };
+
+  const handleImport = (importedData: { release: ReleaseData; tracks: TrackData[] }) => {
+    setReleaseData(importedData.release);
+    setTracks(importedData.tracks);
   };
 
   const getStepColor = (stepNumber: number) => {
     if (stepNumber < currentStep) return 'bg-green-500 text-white';
     if (stepNumber === currentStep) return 'bg-blue-500 text-white';
     return 'bg-muted text-muted-foreground';
+  };
+
+  const getValidationMessage = (): string | null => {
+    if (!areAssetsMandatory()) {
+      return null; // No validation message in optional mode
+    }
+
+    const assetValidation = validateAllAssets(releaseData, tracks);
+
+    if (currentStep === 1 && assetValidation.missingArtwork) {
+      return 'Please upload release artwork to continue';
+    }
+
+    if (currentStep === 2 && assetValidation.missingAudioTracks.length > 0) {
+      return getAssetValidationMessage(false, assetValidation.missingAudioTracks);
+    }
+
+    return null;
   };
 
   return (
@@ -181,17 +219,20 @@ const Index = () => {
         {/* Step Content */}
         <Card className="p-6 mb-6">
           {currentStep === 1 && (
-            <ReleaseInfo 
-              data={releaseData} 
-              onChange={setReleaseData} 
+            <ReleaseInfo
+              data={releaseData}
+              onChange={setReleaseData}
+              onImport={handleImport}
+              showValidation={attemptedProceed}
             />
           )}
-          
+
           {currentStep === 2 && (
-            <TrackDetails 
+            <TrackDetails
               tracks={tracks}
               onChange={setTracks}
               releaseData={releaseData}
+              showValidation={attemptedProceed}
             />
           )}
           
@@ -214,16 +255,36 @@ const Index = () => {
             <ChevronLeft className="w-4 h-4 mr-2" />
             Previous
           </Button>
-          
+
           {currentStep < 3 && (
-            <Button
-              onClick={handleNext}
-              disabled={!canProceed(currentStep)}
-              className="flex items-center"
-            >
-              Next
-              <ChevronRight className="w-4 h-4 ml-2" />
-            </Button>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className={`inline-flex ${!canProceed(currentStep) ? 'cursor-not-allowed' : ''}`}>
+                    <Button
+                      onClick={handleNext}
+                      disabled={!canProceed(currentStep)}
+                      className="flex items-center"
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                {getValidationMessage() && !canProceed(currentStep) && (
+                  <TooltipContent className="bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800 max-w-xs">
+                    <div className="flex items-start">
+                      <AlertCircle className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-0.5 mr-2 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm text-orange-700 dark:text-orange-400">
+                          {getValidationMessage()}
+                        </p>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
       </div>
