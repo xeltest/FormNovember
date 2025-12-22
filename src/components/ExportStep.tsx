@@ -13,8 +13,9 @@ import {
 import { CheckCircle, AlertCircle, Music, Users, Globe, Upload, Download, FileArchive, Mail } from 'lucide-react';
 import { ReleaseData, TrackData } from '@/pages/Index';
 import JSZip from 'jszip';
-import { validateAllAssets, getAssetValidationMessage } from '@/lib/assetValidation';
+import { validateAllAssets, getAssetValidationMessage, getDetailedValidationMessage } from '@/lib/assetValidation';
 import { getExportLabel } from '@/constants/genres';
+import { COUNTRY_CODES } from '@/constants/territories';
 
 interface ExportStepProps {
   releaseData: ReleaseData;
@@ -30,14 +31,10 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
   const validateData = () => {
     const issues = [];
 
-    // Asset validation (artwork + audio files)
+    // Asset validation (artwork only)
     const assetValidation = validateAllAssets(releaseData, tracks);
     if (assetValidation.missingArtwork) {
       issues.push('Release artwork is required');
-    }
-    if (assetValidation.missingAudioTracks.length > 0) {
-      const message = getAssetValidationMessage(false, assetValidation.missingAudioTracks);
-      if (message) issues.push(message);
     }
 
     // Release validation
@@ -49,20 +46,11 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
     if (!releaseData.albumCLine) issues.push('Album C Line is required');
     if (!releaseData.albumPLine) issues.push('Album P Line is required');
 
-    // Track validation
-    tracks.forEach((track, index) => {
-      if (!track.title) issues.push(`Track ${index + 1}: Title is required`);
-      if (!track.artists[0]) issues.push(`Track ${index + 1}: At least one artist is required`);
-      if (!track.trackGenre) issues.push(`Track ${index + 1}: Genre is required`);
-
-      const hasPerformer = track.performers.some(p => p.name && p.roles.length > 0);
-      const hasComposer = track.composition.some(c => c.name && c.roles.length > 0);
-      const hasProducer = track.production.some(p => p.name && p.roles.length > 0);
-
-      if (!hasPerformer) issues.push(`Track ${index + 1}: At least one performer with role is required`);
-      if (!hasComposer) issues.push(`Track ${index + 1}: At least one composer/writer with role is required`);
-      if (!hasProducer) issues.push(`Track ${index + 1}: At least one producer/engineer with role is required`);
-    });
+    // Track validation - use detailed validation message
+    const detailedTrackMessage = getDetailedValidationMessage(tracks);
+    if (detailedTrackMessage) {
+      issues.push(detailedTrackMessage);
+    }
 
     return issues;
   };
@@ -143,243 +131,6 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
 
     return `${baseUrl}?${params.toString()}`;
   };
-  // Convert country names to ISO 2-letter codes
-  const countryToISO: { [key: string]: string } = {
-    'United States': 'US',
-    'Canada': 'CA',
-    'Mexico': 'MX',
-    'Anguilla': 'AI',
-    'Antigua And Barbuda': 'AG',
-    'Aruba': 'AW',
-    'Bahamas': 'BS',
-    'Barbados': 'BB',
-    'Belize': 'BZ',
-    'Bermuda': 'BM',
-    'British Virgin Islands': 'VG',
-    'Cayman Islands': 'KY',
-    'Costa Rica': 'CR',
-    'Cuba': 'CU',
-    'Dominica': 'DM',
-    'Dominican Republic': 'DO',
-    'El Salvador': 'SV',
-    'Greenland': 'GL',
-    'Grenada': 'GD',
-    'Guadeloupe': 'GP',
-    'Guam': 'GU',
-    'Guatemala': 'GT',
-    'Haiti': 'HT',
-    'Honduras': 'HN',
-    'Jamaica': 'JM',
-    'Martinique': 'MQ',
-    'Montserrat': 'MS',
-    'Nicaragua': 'NI',
-    'Panama': 'PA',
-    'Puerto Rico': 'PR',
-    'Saint Kitts And Nevis': 'KN',
-    'Saint Lucia': 'LC',
-    'Saint Vincent And The Grenadines': 'VC',
-    'St. Pierre And Miquelon': 'PM',
-    'Trinidad And Tobago': 'TT',
-    'Turks And Caicos Islands': 'TC',
-    'United States Virgin Islands': 'VI',
-    'Netherlands Antilles': 'AN',
-    'Saint-Barthélemy': 'BL',
-    'Saint-Martin (French part)': 'MF',
-    'Aland Islands': 'AX',
-    'Albania': 'AL',
-    'Andorra': 'AD',
-    'Austria': 'AT',
-    'Belarus': 'BY',
-    'Belgium': 'BE',
-    'Bosnia And Herzegowina': 'BA',
-    'Bulgaria': 'BG',
-    'Croatia': 'HR',
-    'Cyprus': 'CY',
-    'Czech Republic': 'CZ',
-    'Denmark': 'DK',
-    'Estonia': 'EE',
-    'Faroe Islands': 'FO',
-    'Finland': 'FI',
-    'France': 'FR',
-    'Germany': 'DE',
-    'Gibraltar': 'GI',
-    'Greece': 'GR',
-    'Guernsey': 'GG',
-    'Holy See (Vatican City State)': 'VA',
-    'Hungary': 'HU',
-    'Iceland': 'IS',
-    'Ireland': 'IE',
-    'Isle of Man': 'IM',
-    'Italy': 'IT',
-    'Jersey': 'JE',
-    'Latvia': 'LV',
-    'Liechtenstein': 'LI',
-    'Lithuania': 'LT',
-    'Luxembourg': 'LU',
-    'Malta': 'MT',
-    'Moldova': 'MD',
-    'Monaco': 'MC',
-    'Montenegro': 'ME',
-    'Netherlands': 'NL',
-    'North Macedonia': 'MK',
-    'Norway': 'NO',
-    'Poland': 'PL',
-    'Portugal': 'PT',
-    'Romania': 'RO',
-    'San Marino': 'SM',
-    'Serbia': 'RS',
-    'Slovakia': 'SK',
-    'Slovenia': 'SI',
-    'Spain': 'ES',
-    'Svalbard And Jan Mayen Islands': 'SJ',
-    'Sweden': 'SE',
-    'Switzerland': 'CH',
-    'Ukraine': 'UA',
-    'United Kingdom': 'GB',
-    'Afghanistan': 'AF',
-    'Armenia': 'AM',
-    'Azerbaijan': 'AZ',
-    'Bahrain': 'BH',
-    'Bangladesh': 'BD',
-    'Bhutan': 'BT',
-    'Brunei Darussalam': 'BN',
-    'Cambodia': 'KH',
-    'China': 'CN',
-    'Georgia': 'GE',
-    'Hong Kong': 'HK',
-    'India': 'IN',
-    'Indonesia': 'ID',
-    'Iran': 'IR',
-    'Iraq': 'IQ',
-    'Israel': 'IL',
-    'Japan': 'JP',
-    'Jordan': 'JO',
-    'Kazakhstan': 'KZ',
-    'Korea, Republic Of': 'KR',
-    'Korea, D.P.R.O.': 'KP',
-    'Kuwait': 'KW',
-    'Kyrgyzstan': 'KG',
-    'Laos': 'LA',
-    'Lebanon': 'LB',
-    'Macau': 'MO',
-    'Malaysia': 'MY',
-    'Maldives': 'MV',
-    'Mongolia': 'MN',
-    'Myanmar': 'MM',
-    'Nepal': 'NP',
-    'Oman': 'OM',
-    'Pakistan': 'PK',
-    'Palestinian Territory, Occupied': 'PS',
-    'Philippines': 'PH',
-    'Qatar': 'QA',
-    'Saudi Arabia': 'SA',
-    'Singapore': 'SG',
-    'Sri Lanka': 'LK',
-    'Syrian Arab Republic': 'SY',
-    'Taiwan': 'TW',
-    'Tajikistan': 'TJ',
-    'Thailand': 'TH',
-    'Timor-Leste': 'TL',
-    'Turkey': 'TR',
-    'Turkmenistan': 'TM',
-    'United Arab Emirates': 'AE',
-    'Uzbekistan': 'UZ',
-    'Viet Nam': 'VN',
-    'Yemen': 'YE',
-    'Argentina': 'AR',
-    'Bolivia': 'BO',
-    'Brazil': 'BR',
-    'Chile': 'CL',
-    'Colombia': 'CO',
-    'Ecuador': 'EC',
-    'French Guiana': 'GF',
-    'Guyana': 'GY',
-    'Paraguay': 'PY',
-    'Peru': 'PE',
-    'Suriname': 'SR',
-    'Uruguay': 'UY',
-    'Venezuela': 'VE',
-    'Falkland Islands': 'FK',
-    'Algeria': 'DZ',
-    'Angola': 'AO',
-    'Benin': 'BJ',
-    'Botswana': 'BW',
-    'Burkina Faso': 'BF',
-    'Burundi': 'BI',
-    'Cameroon': 'CM',
-    'Cape Verde': 'CV',
-    'Central African Republic': 'CF',
-    'Chad': 'TD',
-    'Comoros': 'KM',
-    'Cote D\'ivoire': 'CI',
-    'Congo': 'CG',
-    'Congo, The DRC': 'CD',
-    'Djibouti': 'DJ',
-    'Egypt': 'EG',
-    'Equatorial Guinea': 'GQ',
-    'Eritrea': 'ER',
-    'Ethiopia': 'ET',
-    'Gabon': 'GA',
-    'Gambia': 'GM',
-    'Ghana': 'GH',
-    'Guinea': 'GN',
-    'Guinea-Bissau': 'GW',
-    'Kenya': 'KE',
-    'Lesotho': 'LS',
-    'Liberia': 'LR',
-    'Libyan Arab Jamahiriya': 'LY',
-    'Madagascar': 'MG',
-    'Malawi': 'MW',
-    'Mali': 'ML',
-    'Mauritania': 'MR',
-    'Mauritius': 'MU',
-    'Mayotte': 'YT',
-    'Morocco': 'MA',
-    'Mozambique': 'MZ',
-    'Namibia': 'NA',
-    'Niger': 'NE',
-    'Nigeria': 'NG',
-    'Reunion': 'RE',
-    'Rwanda': 'RW',
-    'Sao Tome And Principe': 'ST',
-    'Senegal': 'SN',
-    'Seychelles': 'SC',
-    'Sierra Leone': 'SL',
-    'Somalia': 'SO',
-    'South Africa': 'ZA',
-    'South Sudan': 'SS',
-    'St. Helena': 'SH',
-    'Sudan': 'SD',
-    'Swaziland': 'SZ',
-    'Tanzania': 'TZ',
-    'Togo': 'TG',
-    'Tunisia': 'TN',
-    'Uganda': 'UG',
-    'Western Sahara': 'EH',
-    'Zambia': 'ZM',
-    'Zimbabwe': 'ZW',
-    'American Samoa': 'AS',
-    'Australia': 'AU',
-    'Cocos (Keeling) Islands': 'CC',
-    'Cook Islands': 'CK',
-    'Fiji': 'FJ',
-    'French Polynesia': 'PF',
-    'Heard and McDonald Islands': 'HM',
-    'Kiribati': 'KI',
-    'Marshall Islands': 'MH',
-    'Micronesia': 'FM',
-    'Nauru': 'NR',
-    'New Caledonia': 'NC',
-    'New Zealand': 'NZ',
-    'Niue': 'NU',
-    'Norfolk Island': 'NF',
-    'Northern Mariana Islands': 'MP',
-    'Palau': 'PW',
-    'Papua New Guinea': 'PG',
-    'Pitcairn': 'PN',
-    'Samoa': 'WS',
-    'Solomon Islands': 'SB'
-  };
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
@@ -392,11 +143,11 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
 
   const getTerritories = () => {
     if (releaseData.isWorldwide) return { included: '', excluded: '' };
-    
+
     const isoCodes = releaseData.territories
-      .map(country => countryToISO[country] || country)
+      .map(country => COUNTRY_CODES[country] || country)
       .join('/');
-    
+
     if (releaseData.territoryMode === 'include') {
       return { included: isoCodes, excluded: '' };
     } else {

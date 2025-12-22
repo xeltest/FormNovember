@@ -4,16 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Plus, X, Upload, AlertCircle } from 'lucide-react';
 import { ReleaseData, TrackData } from '@/pages/Index';
 import { GenreSelector } from '@/components/GenreSelector';
 import ImportFromZip from '@/components/ImportFromZip';
 import { areAssetsMandatory } from '@/lib/assetValidation';
 import { FieldTooltip } from '@/components/ui/FieldTooltip';
+import TerritorySelector from '@/components/territory/TerritorySelector';
 
 interface ReleaseInfoProps {
   data: ReleaseData;
@@ -22,17 +20,6 @@ interface ReleaseInfoProps {
   showValidation: boolean;
 }
 
-const continents = {
-  'North America': ['United States', 'Canada', 'Mexico', 'Anguilla', 'Antigua And Barbuda', 'Aruba', 'Bahamas', 'Barbados', 'Belize', 'Bermuda', 'British Virgin Islands', 'Cayman Islands', 'Costa Rica', 'Cuba', 'Dominica', 'Dominican Republic', 'El Salvador', 'Greenland', 'Grenada', 'Guadeloupe', 'Guam', 'Guatemala', 'Haiti', 'Honduras', 'Jamaica', 'Martinique', 'Montserrat', 'Nicaragua', 'Panama', 'Puerto Rico', 'Saint Kitts And Nevis', 'Saint Lucia', 'Saint Vincent And The Grenadines', 'St. Pierre And Miquelon', 'Trinidad And Tobago', 'Turks And Caicos Islands', 'United States Virgin Islands', 'Netherlands Antilles', 'Saint-Barthélemy', 'Saint-Martin (French part)'],
-  'Europe': ['Aland Islands', 'Albania', 'Andorra', 'Austria', 'Belarus', 'Belgium', 'Bosnia And Herzegowina', 'Bulgaria', 'Croatia (local Name: Hrvatska)', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Faroe Islands', 'Finland', 'France', 'Germany', 'Gibraltar', 'Greece', 'Guernsey', 'Holy See (vatican City State)', 'Hungary', 'Iceland', 'Ireland', 'Isle of Man', 'Italy', 'Jersey', 'Latvia', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Malta', 'Moldova, Republic Of', 'Monaco', 'Montenegro', 'Netherlands', 'North Macedonia', 'Norway', 'Poland', 'Portugal', 'Romania', 'San Marino', 'Serbia', 'Slovakia (slovak Republic)', 'Slovenia', 'Spain', 'Svalbard And Jan Mayen Islands', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'],
-  'Asia': ['Afghanistan', 'Armenia', 'Azerbaijan', 'Bahrain', 'Bangladesh', 'Bhutan', 'Brunei Darussalam', 'Cambodia', 'China', 'Georgia', 'Hong Kong', 'India', 'Indonesia', 'Iran (islamic Republic Of)', 'Iraq', 'Israel', 'Japan', 'Jordan', 'Kazakhstan', 'Korea, Republic Of', 'Korea, D.p.r.o.', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Lebanon', 'Macau', 'Malaysia', 'Maldives', 'Mongolia', 'Myanmar (burma)', 'Nepal', 'Oman', 'Pakistan', 'Palestinian Territory, Occupied', 'Philippines', 'Qatar', 'Saudi Arabia','Singapore', 'Sri Lanka', 'Syrian Arab Republic', 'Taiwan, Province Of China', 'Tajikistan', 'Thailand', 'Timor-Leste', 'Turkey', 'Turkmenistan', 'United Arab Emirates', 'Uzbekistan', 'Viet Nam', 'Yemen'],
-  'South America': ['Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Ecuador', 'French Guiana', 'Guyana', 'Paraguay', 'Peru', 'Suriname', 'Uruguay', 'Venezuela', 'Falkland Islands (malvinas)'],
-  'Africa': ['Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Cape Verde', 'Central African Republic', 'Chad', 'Comoros', 'Cote D\'ivoire', 'Congo', 'Congo, The Drc', 'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Guinea-bissau', 'Kenya', 'Lesotho', 'Liberia', 'Libyan Arab Jamahiriya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Mayotte', 'Morocco', 'Mozambique', 'Namibia','Niger', 'Nigeria', 'Reunion', 'Rwanda', 'Sao Tome And Principe', 'Senegal', 'Seychelles','Sierra Leone', 'Somalia', 'South Africa', 'South Sudan', 'St. Helena', 'Sudan', 'Swaziland', 'Tanzania, United Republic Of', 'Togo', 'Tunisia', 'Uganda', 'Western Sahara', 'Zambia', 'Zimbabwe'],
-  'Oceania': ['American Samoa', 'Australia', 'Cocos (keeling) Islands', 'Cook Islands', 'Fiji', 'French Polynesia', 'Guam', 'Heard And Mc Donald Islands', 'Kiribati', 'Marshall Islands', 'Micronesia, Federated States Of', 'Nauru', 'New Caledonia', 'New Zealand', 'Niue', 'Norfolk Island', 'Northern Mariana Islands', 'Palau', 'Papua New Guinea', 'Pitcairn', 'Samoa', 'Solomon Islands', 'Tokelau', 'Tonga', 'Tuvalu', 'Vanuatu', 'Wallis And Futuna Islands', 'U.s. Minor Islands', 'South Georgia And South S.s.']
-};
-
-// All individual countries for the dropdown
-const allCountries = Object.values(continents).flat().sort();
 
 const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoProps) => {
   const [showMixVersion, setShowMixVersion] = useState(!!data.mixVersion);
@@ -68,23 +55,6 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
     }
   };
 
-  const addContinent = (continent: string) => {
-    const countries = continents[continent as keyof typeof continents];
-    const newTerritories = [...new Set([...data.territories, ...countries])];
-    updateData({ territories: newTerritories });
-  };
-
-  const addIndividualTerritory = (territory: string) => {
-    if (!data.territories.includes(territory)) {
-      const newTerritories = [...data.territories, territory];
-      updateData({ territories: newTerritories });
-    }
-  };
-
-  const removeTerritory = (territory: string) => {
-    const newTerritories = data.territories.filter(t => t !== territory);
-    updateData({ territories: newTerritories });
-  };
 
   const handleFileUpload = (file: File) => {
     updateData({ artwork: file });
@@ -118,13 +88,6 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
 
   const triggerFileInput = () => {
     document.getElementById('artwork-upload')?.click();
-  };
-
-  const getTerritoryHelperText = () => {
-    if (data.territoryMode === 'include') {
-      return "Release will be available ONLY in selected territories";
-    }
-    return "Release will be available worldwide EXCEPT for selected territories";
   };
 
   return (
@@ -524,7 +487,7 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
               id="albumCLine"
               value={data.albumCLine}
               onChange={(e) => updateData({ albumCLine: e.target.value })}
-              placeholder="℗ 2025 Example Records"
+              placeholder="2025 Example Records"
             />
           </div>
           <div>
@@ -538,7 +501,7 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
               id="albumPLine"
               value={data.albumPLine}
               onChange={(e) => updateData({ albumPLine: e.target.value })}
-              placeholder="© 2025 Example Records"
+              placeholder="2025 Example Records"
             />
           </div>
         </CardContent>
@@ -550,111 +513,11 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
           <CardTitle>Distribution Territories</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="worldwide"
-              checked={data.isWorldwide}
-              onCheckedChange={(checked) => updateData({ isWorldwide: !!checked })}
-            />
-            <Label htmlFor="worldwide" className="mb-0">Release worldwide</Label>
-          </div>
-          
-          {!data.isWorldwide && (
-            <div className="space-y-4">
-              <div className="space-y-3">
-                <FieldTooltip
-                  label="Territory Mode:"
-                  fieldKey="territoryMode"
-                />
-                <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-3 bg-muted rounded-full p-1">
-                    <div 
-                      className={`px-4 py-2 rounded-full text-sm font-medium cursor-pointer transition-all ${
-                        data.territoryMode === 'include' 
-                          ? 'bg-green-500 text-white shadow-sm' 
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                      onClick={() => updateData({ territoryMode: 'include' })}
-                    >
-                      Include
-                    </div>
-                    <div 
-                      className={`px-4 py-2 rounded-full text-sm font-medium cursor-pointer transition-all ${
-                        data.territoryMode === 'exclude' 
-                          ? 'bg-red-500 text-white shadow-sm' 
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                      onClick={() => updateData({ territoryMode: 'exclude' })}
-                    >
-                      Exclude
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{getTerritoryHelperText()}</p>
-                </div>
-              </div>
-              
-              <div>
-                <Label className="mb-3 block">Quick Select by Continent:</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {Object.keys(continents).map(continent => (
-                    <Button
-                      key={continent}
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => addContinent(continent)}
-                    >
-                      {continent}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <Label className="mb-3 block">Add Individual Territory:</Label>
-                <Select onValueChange={addIndividualTerritory}>
-                  <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="Select a territory" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {allCountries.map(country => (
-                      <SelectItem 
-                        key={country} 
-                        value={country}
-                        disabled={data.territories.includes(country)}
-                      >
-                        {country}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {data.territories.length > 0 && (
-                <div>
-                  <Label className="mb-3 block">Selected Territories:</Label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {data.territories.map(territory => (
-                      <Badge 
-                        key={territory} 
-                        variant="secondary"
-                        className={data.territoryMode === 'include' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
-                      >
-                        {territory}
-                        <button
-                          type="button"
-                          onClick={() => removeTerritory(territory)}
-                          className="ml-1 hover:text-red-600"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+          <TerritorySelector
+            data={data}
+            onChange={onChange}
+            showValidation={showValidation}
+          />
         </CardContent>
       </Card>
     </div>
