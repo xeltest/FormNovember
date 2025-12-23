@@ -32,15 +32,25 @@ const TerritorySelector: React.FC<TerritorySelectorProps> = ({
 
   // Initialize state from props
   useEffect(() => {
+    const allCountries = Object.values(CONTINENTS).flat();
+
     if (data.isWorldwide) {
       setIncludedTerritories(new Set());
       setExcludedTerritories(new Set());
     } else if (data.territoryMode === 'include') {
-      setIncludedTerritories(new Set(data.territories));
-      setExcludedTerritories(new Set());
+      const included = new Set(data.territories);
+      const excluded = new Set(allCountries.filter(c => !included.has(c)));
+      setIncludedTerritories(included);
+      setExcludedTerritories(excluded);
     } else if (data.territoryMode === 'exclude') {
-      setIncludedTerritories(new Set());
-      setExcludedTerritories(new Set(data.territories));
+      const excluded = new Set(data.territories);
+      const included = new Set(allCountries.filter(c => !excluded.has(c)));
+      setIncludedTerritories(included);
+      setExcludedTerritories(excluded);
+    } else {
+      // Default: all territories included when no mode specified
+      setIncludedTerritories(new Set(allCountries));
+      setExcludedTerritories(new Set());
     }
   }, [data.isWorldwide, data.territoryMode, data.territories]);
 
@@ -125,8 +135,10 @@ const TerritorySelector: React.FC<TerritorySelectorProps> = ({
     setIncludedTerritories(newIncluded);
     setExcludedTerritories(newExcluded);
 
-    // Derive territory mode from panel state
-    const territoryMode = newIncluded.size > 0 ? 'include' : 'exclude';
+    // Smart export logic: use whichever list is shorter
+    const includedCount = newIncluded.size;
+    const excludedCount = newExcluded.size;
+    const territoryMode = includedCount <= excludedCount ? 'include' : 'exclude';
     const territories = territoryMode === 'include' ? Array.from(newIncluded) : Array.from(newExcluded);
 
     // Update parent component
@@ -177,8 +189,10 @@ const TerritorySelector: React.FC<TerritorySelectorProps> = ({
     setIncludedTerritories(newIncluded);
     setExcludedTerritories(newExcluded);
 
-    // Derive territory mode from panel state
-    const territoryMode = newIncluded.size > 0 ? 'include' : 'exclude';
+    // Smart export logic: use whichever list is shorter
+    const includedCount = newIncluded.size;
+    const excludedCount = newExcluded.size;
+    const territoryMode = includedCount <= excludedCount ? 'include' : 'exclude';
     const territories = territoryMode === 'include' ? Array.from(newIncluded) : Array.from(newExcluded);
 
     // Update parent component
