@@ -12,11 +12,22 @@ const TerritoryNode: React.FC<TerritoryNodeComponentProps> = ({
   onToggleExpand,
   hasChildren,
 }) => {
+  // Prevent checkbox clicks from bubbling to AccordionTrigger
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+  // Prevent expand button clicks from bubbling to AccordionTrigger
+  const handleExpandClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleExpand();
+  };
+
   return (
     <div className="flex items-center space-x-2 py-1.5 px-2 hover:bg-muted/50 rounded-md transition-colors">
       {hasChildren && (
         <button
-          onClick={onToggleExpand}
+          onClick={handleExpandClick}
           className="p-0.5 hover:bg-muted rounded transition-colors"
           type="button"
         >
@@ -29,11 +40,13 @@ const TerritoryNode: React.FC<TerritoryNodeComponentProps> = ({
       )}
       {!hasChildren && <div className="w-5" />}
 
-      <Checkbox
-        checked={isSelected ? true : isPartiallySelected ? 'indeterminate' : false}
-        onCheckedChange={onToggle}
-        className={isSelected || isPartiallySelected ? 'data-[state=checked]:bg-yellow-500 data-[state=checked]:border-yellow-500 data-[state=indeterminate]:bg-yellow-500 data-[state=indeterminate]:border-yellow-500' : ''}
-      />
+      <div onClick={handleCheckboxClick}>
+        <Checkbox
+          checked={isSelected ? true : isPartiallySelected ? 'indeterminate' : false}
+          onCheckedChange={onToggle}
+          className={isSelected || isPartiallySelected ? 'data-[state=checked]:bg-yellow-500 data-[state=checked]:border-yellow-500 data-[state=indeterminate]:bg-yellow-500 data-[state=indeterminate]:border-yellow-500' : ''}
+        />
+      </div>
 
       {node.type === 'continent' ? (
         <Globe className="w-4 h-4 text-muted-foreground" />

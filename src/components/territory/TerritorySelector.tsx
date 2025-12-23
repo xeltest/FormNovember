@@ -6,7 +6,6 @@ import { ReleaseData } from '@/pages/Index';
 import { CONTINENTS, getCountryCode, getTotalCountries } from '@/constants/territories';
 import TerritoryPanel from './TerritoryPanel';
 import { TerritoryNode } from './types';
-import { FieldTooltip } from '@/components/ui/FieldTooltip';
 
 interface TerritorySelectorProps {
   data: ReleaseData;
@@ -60,59 +59,37 @@ const TerritorySelector: React.FC<TerritorySelectorProps> = ({
     }));
   }, []);
 
-  // Get nodes for each panel
-  const includedNodes = useMemo(() => {
-    return territoryNodes.map((continent) => ({
-      ...continent,
-      children: continent.children?.filter((country) => includedTerritories.has(country.name)),
-    })).filter((continent) => (continent.children?.length ?? 0) > 0);
-  }, [territoryNodes, includedTerritories]);
-
-  const excludedNodes = useMemo(() => {
-    return territoryNodes.map((continent) => ({
-      ...continent,
-      children: continent.children?.filter((country) => excludedTerritories.has(country.name)),
-    })).filter((continent) => (continent.children?.length ?? 0) > 0);
-  }, [territoryNodes, excludedTerritories]);
-
   // Handle worldwide checkbox toggle
   const handleWorldwideChange = (checked: boolean) => {
-    onChange({
-      ...data,
-      isWorldwide: checked,
-      territories: [],
-      territoryMode: checked ? undefined : 'include',
-    });
-
     if (checked) {
       setIncludedTerritories(new Set());
       setExcludedTerritories(new Set());
-    }
-  };
-
-  // Handle territory mode toggle
-  const handleModeChange = (mode: 'include' | 'exclude') => {
-    // When switching modes, swap the territories
-    const currentTerritories = mode === 'include' ? excludedTerritories : includedTerritories;
-
-    onChange({
-      ...data,
-      territoryMode: mode,
-      territories: Array.from(currentTerritories),
-    });
-
-    if (mode === 'include') {
-      setIncludedTerritories(currentTerritories);
-      setExcludedTerritories(new Set());
+      onChange({
+        ...data,
+        isWorldwide: true,
+        territories: [],
+        territoryMode: undefined,
+      });
     } else {
-      setExcludedTerritories(currentTerritories);
-      setIncludedTerritories(new Set());
+      // When unchecking worldwide, initialize all territories in Included panel
+      const allCountries = Object.values(CONTINENTS).flat();
+      const newIncluded = new Set(allCountries);
+      setIncludedTerritories(newIncluded);
+      setExcludedTerritories(new Set());
+      onChange({
+        ...data,
+        isWorldwide: false,
+        territories: allCountries,
+        territoryMode: 'include',
+      });
     }
   };
 
   // Handle territory toggle in included panel
+  // When unchecking, move to excluded panel
   const handleIncludedToggle = (territory: string, isContinent: boolean) => {
     const newIncluded = new Set(includedTerritories);
+    const newExcluded = new Set(excludedTerritories);
 
     if (isContinent) {
       // Toggle entire continent
@@ -120,33 +97,50 @@ const TerritorySelector: React.FC<TerritorySelectorProps> = ({
       const allSelected = continentCountries.every((country) => newIncluded.has(country));
 
       if (allSelected) {
-        // Remove all countries
-        continentCountries.forEach((country) => newIncluded.delete(country));
+        // Move all countries from included to excluded
+        continentCountries.forEach((country) => {
+          newIncluded.delete(country);
+          newExcluded.add(country);
+        });
       } else {
-        // Add all countries
-        continentCountries.forEach((country) => newIncluded.add(country));
+        // Move all countries from excluded to included
+        continentCountries.forEach((country) => {
+          newExcluded.delete(country);
+          newIncluded.add(country);
+        });
       }
     } else {
       // Toggle individual country
       if (newIncluded.has(territory)) {
+        // Move from included to excluded
         newIncluded.delete(territory);
+        newExcluded.add(territory);
       } else {
+        // Move from excluded to included
+        newExcluded.delete(territory);
         newIncluded.add(territory);
       }
     }
 
     setIncludedTerritories(newIncluded);
+    setExcludedTerritories(newExcluded);
+
+    // Derive territory mode from panel state
+    const territoryMode = newIncluded.size > 0 ? 'include' : 'exclude';
+    const territories = territoryMode === 'include' ? Array.from(newIncluded) : Array.from(newExcluded);
 
     // Update parent component
     onChange({
       ...data,
-      territories: Array.from(newIncluded),
-      territoryMode: 'include',
+      territories,
+      territoryMode,
     });
   };
 
   // Handle territory toggle in excluded panel
+  // When unchecking, move to included panel
   const handleExcludedToggle = (territory: string, isContinent: boolean) => {
+    const newIncluded = new Set(includedTerritories);
     const newExcluded = new Set(excludedTerritories);
 
     if (isContinent) {
@@ -155,28 +149,43 @@ const TerritorySelector: React.FC<TerritorySelectorProps> = ({
       const allSelected = continentCountries.every((country) => newExcluded.has(country));
 
       if (allSelected) {
-        // Remove all countries
-        continentCountries.forEach((country) => newExcluded.delete(country));
+        // Move all countries from excluded to included
+        continentCountries.forEach((country) => {
+          newExcluded.delete(country);
+          newIncluded.add(country);
+        });
       } else {
-        // Add all countries
-        continentCountries.forEach((country) => newExcluded.add(country));
+        // Move all countries from included to excluded
+        continentCountries.forEach((country) => {
+          newIncluded.delete(country);
+          newExcluded.add(country);
+        });
       }
     } else {
       // Toggle individual country
       if (newExcluded.has(territory)) {
+        // Move from excluded to included
         newExcluded.delete(territory);
+        newIncluded.add(territory);
       } else {
+        // Move from included to excluded
+        newIncluded.delete(territory);
         newExcluded.add(territory);
       }
     }
 
+    setIncludedTerritories(newIncluded);
     setExcludedTerritories(newExcluded);
+
+    // Derive territory mode from panel state
+    const territoryMode = newIncluded.size > 0 ? 'include' : 'exclude';
+    const territories = territoryMode === 'include' ? Array.from(newIncluded) : Array.from(newExcluded);
 
     // Update parent component
     onChange({
       ...data,
-      territories: Array.from(newExcluded),
-      territoryMode: 'exclude',
+      territories,
+      territoryMode,
     });
   };
 
@@ -200,13 +209,6 @@ const TerritorySelector: React.FC<TerritorySelectorProps> = ({
     setExpandedExcluded(newExpanded);
   };
 
-  const getTerritoryHelperText = () => {
-    if (data.territoryMode === 'include') {
-      return "Release will be available ONLY in selected territories";
-    }
-    return "Release will be available worldwide EXCEPT for selected territories";
-  };
-
   const totalCountries = getTotalCountries();
   const includedCount = includedTerritories.size;
   const excludedCount = excludedTerritories.size;
@@ -226,39 +228,6 @@ const TerritorySelector: React.FC<TerritorySelectorProps> = ({
       {/* Territory Selection Panels */}
       {!data.isWorldwide && (
         <div className="space-y-4">
-          {/* Territory Mode Toggle */}
-          <div className="space-y-3">
-            <FieldTooltip
-              label="Territory Mode:"
-              fieldKey="territoryMode"
-            />
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3 bg-muted rounded-full p-1">
-                <div
-                  className={`px-4 py-2 rounded-full text-sm font-medium cursor-pointer transition-all ${
-                    data.territoryMode === 'include'
-                      ? 'bg-green-500 text-white shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                  onClick={() => handleModeChange('include')}
-                >
-                  Include
-                </div>
-                <div
-                  className={`px-4 py-2 rounded-full text-sm font-medium cursor-pointer transition-all ${
-                    data.territoryMode === 'exclude'
-                      ? 'bg-red-500 text-white shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                  onClick={() => handleModeChange('exclude')}
-                >
-                  Exclude
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground">{getTerritoryHelperText()}</p>
-            </div>
-          </div>
-
           {/* Total Count Badge */}
           <div className="flex items-center justify-center py-2">
             <Badge variant="outline" className="text-sm">
@@ -277,7 +246,7 @@ const TerritorySelector: React.FC<TerritorySelectorProps> = ({
               title="Included Territories"
               count={includedCount}
               side="included"
-              nodes={data.territoryMode === 'include' ? territoryNodes : includedNodes}
+              nodes={territoryNodes}
               expandedNodes={expandedIncluded}
               onToggleExpand={toggleExpandedIncluded}
             />
@@ -291,7 +260,7 @@ const TerritorySelector: React.FC<TerritorySelectorProps> = ({
               title="Excluded Territories"
               count={excludedCount}
               side="excluded"
-              nodes={data.territoryMode === 'exclude' ? territoryNodes : excludedNodes}
+              nodes={territoryNodes}
               expandedNodes={expandedExcluded}
               onToggleExpand={toggleExpandedExcluded}
             />
