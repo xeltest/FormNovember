@@ -36,8 +36,8 @@ const TrackForm = ({
       title: releaseData.title,
       mixVersion: releaseData.mixVersion,
       artists: [...releaseData.artists],
-      featuredArtists: [...releaseData.featuredArtists],
-      remixers: [...releaseData.remixers]
+      featuredArtists: releaseData.featuredArtists.map(a => ({ ...a })),
+      remixers: releaseData.remixers.map(r => ({ ...r }))
     });
   };
 

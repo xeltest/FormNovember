@@ -14,8 +14,8 @@ export interface ReleaseData {
   title: string;
   mixVersion?: string;
   artists: string[];
-  featuredArtists: string[];
-  remixers: string[];
+  featuredArtists: Array<{ name: string; makeSpotifyPrimary?: boolean }>;
+  remixers: Array<{ name: string; makeSpotifyPrimary?: boolean }>;
   releaseDate: string;
   isReRelease: boolean;
   originalReleaseDate?: string;
@@ -36,8 +36,8 @@ export interface TrackData {
   mixVersion?: string;
   audioFile?: File;
   artists: string[];
-  featuredArtists: string[];
-  remixers: string[];
+  featuredArtists: Array<{ name: string; makeSpotifyPrimary?: boolean }>;
+  remixers: Array<{ name: string; makeSpotifyPrimary?: boolean }>;
   performers: Array<{ name: string; roles: string[] }>;
   composition: Array<{ name: string; roles: string[] }>;
   production: Array<{ name: string; roles: string[] }>;

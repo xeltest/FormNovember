@@ -239,8 +239,8 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
 
     // Album Other Artist - format remixers as Artist|Remixer||Artist2|Remixer
     const albumOtherArtist = releaseData.remixers
-      .filter(r => r)
-      .map(r => `${r}|Remixer`)
+      .filter(r => r.name)
+      .map(r => `${r.name}|Remixer`)
       .join('||');
 
     // Track rows - one row per track with release info repeated
@@ -341,12 +341,12 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
         formatDate(releaseData.releaseDate || ''), // Release Date
         formatDate(releaseData.originalReleaseDate || ''), // Original Release Date
         releaseData.artists.filter(a => a).join('|'), // Album Artist
-        releaseData.featuredArtists.join('|'), // Album Featured Artist
+        releaseData.featuredArtists.filter(a => a.name).map(a => a.name).join('|'), // Album Featured Artist
         albumOtherArtist, // Album Other Artist
         releaseData.title, // Album Title
         releaseData.mixVersion || '', // Album Mix Version
         track.artists.filter(a => a).join('|'), // Track Artist
-        track.featuredArtists.join('|'), // Track featured Artist
+        track.featuredArtists.filter(a => a.name).map(a => a.name).join('|'), // Track featured Artist
         vocalists, // Vocalist
         programming, // Programming
         guitarists, // Guitar
@@ -361,7 +361,7 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
         peOther, // PE Other
         track.title, // Track Title
         track.mixVersion || '', // Mix Version
-        track.remixers.join('|'), // Remixer
+        track.remixers.filter(r => r.name).map(r => r.name).join('|'), // Remixer
         track.isrcCode ? cleanISRC(track.isrcCode) : '', // ISRC code
         track.secondaryIsrc ? cleanISRC(track.secondaryIsrc) : '', // Secondary ISRC code
         track.language, // Language
@@ -436,8 +436,8 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
 
         const territories = getTerritories();
         const albumOtherArtist = releaseData.remixers
-          .filter(r => r)
-          .map(r => `${r}|Remixer`)
+          .filter(r => r.name)
+          .map(r => `${r.name}|Remixer`)
           .join('||');
 
         // Populate data starting from row 4
@@ -538,12 +538,12 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
           row.getCell(7).value = formatDate(releaseData.releaseDate || '');
           row.getCell(8).value = formatDate(releaseData.originalReleaseDate || '');
           row.getCell(9).value = releaseData.artists.filter(a => a).join('|');
-          row.getCell(10).value = releaseData.featuredArtists.join('|');
+          row.getCell(10).value = releaseData.featuredArtists.filter(a => a.name).map(a => a.name).join('|');
           row.getCell(11).value = albumOtherArtist;
           row.getCell(12).value = releaseData.title;
           row.getCell(13).value = releaseData.mixVersion || '';
           row.getCell(14).value = track.artists.filter(a => a).join('|');
-          row.getCell(15).value = track.featuredArtists.join('|');
+          row.getCell(15).value = track.featuredArtists.filter(a => a.name).map(a => a.name).join('|');
           row.getCell(16).value = vocalists;
           row.getCell(17).value = programming;
           row.getCell(18).value = guitarists;
@@ -558,7 +558,7 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
           row.getCell(27).value = peOther;
           row.getCell(28).value = track.title;
           row.getCell(29).value = track.mixVersion || '';
-          row.getCell(30).value = track.remixers.join('|');
+          row.getCell(30).value = track.remixers.filter(r => r.name).map(r => r.name).join('|');
           row.getCell(31).value = track.isrcCode ? cleanISRC(track.isrcCode) : '';
           row.getCell(32).value = track.secondaryIsrc ? cleanISRC(track.secondaryIsrc) : '';
           row.getCell(33).value = track.language;
@@ -699,14 +699,14 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
           {releaseData.featuredArtists.length > 0 && (
             <div>
               <h4 className="font-medium text-gray-700">Featured Artists</h4>
-              <p>{releaseData.featuredArtists.join(', ')}</p>
+              <p>{releaseData.featuredArtists.filter(a => a.name).map(a => a.name).join(', ')}</p>
             </div>
           )}
 
           {releaseData.remixers.length > 0 && (
             <div>
               <h4 className="font-medium text-gray-700">Remixers</h4>
-              <p>{releaseData.remixers.join(', ')}</p>
+              <p>{releaseData.remixers.filter(r => r.name).map(r => r.name).join(', ')}</p>
             </div>
           )}
 
@@ -754,7 +754,7 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
                   </p>
                   {track.featuredArtists.length > 0 && (
                     <p className="text-xs text-gray-500">
-                      feat. {track.featuredArtists.join(', ')}
+                      feat. {track.featuredArtists.filter(a => a.name).map(a => a.name).join(', ')}
                     </p>
                   )}
                 </div>

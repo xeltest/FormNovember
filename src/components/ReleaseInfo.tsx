@@ -83,14 +83,31 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
   };
 
   const updateArtistList = (listName: 'artists' | 'featuredArtists' | 'remixers', index: number, value: string) => {
+    if (listName === 'artists') {
+      const newList = [...data[listName]];
+      newList[index] = value;
+      updateData({ [listName]: newList });
+    } else {
+      const newList = [...data[listName]];
+      newList[index] = { ...newList[index], name: value };
+      updateData({ [listName]: newList });
+    }
+  };
+
+  const updateArtistSpotifyFlag = (listName: 'featuredArtists' | 'remixers', index: number, value: boolean) => {
     const newList = [...data[listName]];
-    newList[index] = value;
+    newList[index] = { ...newList[index], makeSpotifyPrimary: value };
     updateData({ [listName]: newList });
   };
 
   const addArtist = (listName: 'artists' | 'featuredArtists' | 'remixers') => {
-    const newList = [...data[listName], ''];
-    updateData({ [listName]: newList });
+    if (listName === 'artists') {
+      const newList = [...data[listName], ''];
+      updateData({ [listName]: newList });
+    } else {
+      const newList = [...data[listName], { name: '', makeSpotifyPrimary: false }];
+      updateData({ [listName]: newList });
+    }
   };
 
   const removeArtist = (listName: 'artists' | 'featuredArtists' | 'remixers', index: number) => {
@@ -248,13 +265,13 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
           </div>
 
           {!showFeaturedArtists ? (
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => {
                 setShowFeaturedArtists(true);
                 if (data.featuredArtists.length === 0) {
-                  updateData({ featuredArtists: [''] });
+                  updateData({ featuredArtists: [{ name: '', makeSpotifyPrimary: false }] });
                 }
               }}
               className="text-sm"
@@ -269,38 +286,50 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
                 fieldKey="featuredArtist"
               />
               {data.featuredArtists.map((artist, index) => (
-                <div key={index} className="flex items-center space-x-2 mt-2">
-                  <Input
-                    value={artist}
-                    onChange={(e) => updateArtistList('featuredArtists', index, e.target.value)}
-                    placeholder="Featured artist name"
-                  />
-                  {index === data.featuredArtists.length - 1 && (
-                    <Button type="button" size="sm" onClick={() => addArtist('featuredArtists')}>
-                      <Plus className="w-4 h-4" />
+                <div key={index} className="space-y-2 mt-2">
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      value={artist.name}
+                      onChange={(e) => updateArtistList('featuredArtists', index, e.target.value)}
+                      placeholder="Featured artist name"
+                    />
+                    {index === data.featuredArtists.length - 1 && (
+                      <Button type="button" size="sm" onClick={() => addArtist('featuredArtists')}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    )}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeArtist('featuredArtists', index)}
+                    >
+                      <X className="w-4 h-4" />
                     </Button>
-                  )}
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => removeArtist('featuredArtists', index)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
+                  </div>
+                  <div className="flex items-center space-x-2 ml-2">
+                    <Checkbox
+                      id={`featured-spotify-${index}`}
+                      checked={artist.makeSpotifyPrimary === true}
+                      onCheckedChange={(checked) => updateArtistSpotifyFlag('featuredArtists', index, !!checked)}
+                    />
+                    <Label htmlFor={`featured-spotify-${index}`} className="text-sm font-normal cursor-pointer">
+                      Make Primary on Spotify
+                    </Label>
+                  </div>
                 </div>
               ))}
             </div>
           )}
 
           {!showRemixers ? (
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => {
                 setShowRemixers(true);
                 if (data.remixers.length === 0) {
-                  updateData({ remixers: [''] });
+                  updateData({ remixers: [{ name: '', makeSpotifyPrimary: false }] });
                 }
               }}
               className="text-sm"
@@ -315,25 +344,37 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
                 fieldKey="remixer"
               />
               {data.remixers.map((artist, index) => (
-                <div key={index} className="flex items-center space-x-2 mt-2">
-                  <Input
-                    value={artist}
-                    onChange={(e) => updateArtistList('remixers', index, e.target.value)}
-                    placeholder="Remixer name"
-                  />
-                  {index === data.remixers.length - 1 && (
-                    <Button type="button" size="sm" onClick={() => addArtist('remixers')}>
-                      <Plus className="w-4 h-4" />
+                <div key={index} className="space-y-2 mt-2">
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      value={artist.name}
+                      onChange={(e) => updateArtistList('remixers', index, e.target.value)}
+                      placeholder="Remixer name"
+                    />
+                    {index === data.remixers.length - 1 && (
+                      <Button type="button" size="sm" onClick={() => addArtist('remixers')}>
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    )}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeArtist('remixers', index)}
+                    >
+                      <X className="w-4 h-4" />
                     </Button>
-                  )}
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => removeArtist('remixers', index)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
+                  </div>
+                  <div className="flex items-center space-x-2 ml-2">
+                    <Checkbox
+                      id={`remixer-spotify-${index}`}
+                      checked={artist.makeSpotifyPrimary === true}
+                      onCheckedChange={(checked) => updateArtistSpotifyFlag('remixers', index, !!checked)}
+                    />
+                    <Label htmlFor={`remixer-spotify-${index}`} className="text-sm font-normal cursor-pointer">
+                      Make Primary on Spotify
+                    </Label>
+                  </div>
                 </div>
               ))}
             </div>
