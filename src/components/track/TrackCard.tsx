@@ -10,6 +10,7 @@ interface TrackCardProps {
   index: number;
   isExpanded: boolean;
   tracksLength: number;
+  tracks: TrackData[];
   releaseData: ReleaseData;
   showValidation: boolean;
   draggedIndex: number | null;
@@ -19,6 +20,7 @@ interface TrackCardProps {
   onUpdateTrack: (updatedTrack: TrackData) => void;
   onRemoveTrack: () => void;
   onPrefillFromRelease: () => void;
+  onCopyFromTrack: (sourceIndex: number) => void;
   onDragStart: (e: React.DragEvent, index: number) => void;
   onDragOver: (e: React.DragEvent, index: number) => void;
   onDragLeave: (e: React.DragEvent) => void;
@@ -30,6 +32,7 @@ const TrackCard = ({
   index,
   isExpanded,
   tracksLength,
+  tracks,
   releaseData,
   showValidation,
   draggedIndex,
@@ -39,6 +42,7 @@ const TrackCard = ({
   onUpdateTrack,
   onRemoveTrack,
   onPrefillFromRelease,
+  onCopyFromTrack,
   onDragStart,
   onDragOver,
   onDragLeave,
@@ -58,10 +62,12 @@ const TrackCard = ({
         index={index}
         isExpanded={isExpanded}
         tracksLength={tracksLength}
+        tracks={tracks}
         getTrackDisplayTitle={getTrackDisplayTitle}
         onToggleExpand={onToggleExpand}
         onRemoveTrack={onRemoveTrack}
         onPrefillFromRelease={onPrefillFromRelease}
+        onCopyFromTrack={onCopyFromTrack}
         onDragStart={onDragStart}
       />
       

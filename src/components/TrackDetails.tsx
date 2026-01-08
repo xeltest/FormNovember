@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { TrackData, ReleaseData } from '@/pages/Index';
 import TrackDetailsHeader from '@/components/track/TrackDetailsHeader';
 import TrackCard from '@/components/track/TrackCard';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 interface TrackDetailsProps {
   tracks: TrackData[];
@@ -140,12 +142,7 @@ const TrackDetails = ({ tracks, onChange, releaseData, showValidation }: TrackDe
 
   return (
     <div className="space-y-6">
-      <TrackDetailsHeader
-        tracks={tracks}
-        onAddBlankTrack={addBlankTrack}
-        onCopyFromTrack={copyFromTrack}
-        getTrackDisplayTitle={getTrackDisplayTitle}
-      />
+      <TrackDetailsHeader />
 
       <div className="space-y-4">
         {tracks.map((track, index) => (
@@ -155,6 +152,7 @@ const TrackDetails = ({ tracks, onChange, releaseData, showValidation }: TrackDe
             index={index}
             isExpanded={expandedTrack === index}
             tracksLength={tracks.length}
+            tracks={tracks}
             releaseData={releaseData}
             showValidation={showValidation}
             draggedIndex={draggedIndex}
@@ -164,12 +162,25 @@ const TrackDetails = ({ tracks, onChange, releaseData, showValidation }: TrackDe
             onUpdateTrack={(updatedTrack) => updateTrack(index, updatedTrack)}
             onRemoveTrack={() => removeTrack(index)}
             onPrefillFromRelease={() => prefillFromRelease(index)}
+            onCopyFromTrack={copyFromTrack}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           />
         ))}
+
+        <div className="flex justify-center pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={addBlankTrack}
+            className="flex items-center"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add New Track
+          </Button>
+        </div>
       </div>
     </div>
   );
