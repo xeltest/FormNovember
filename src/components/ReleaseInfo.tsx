@@ -9,9 +9,10 @@ import { Plus, X, Upload, AlertCircle } from 'lucide-react';
 import { ReleaseData, TrackData } from '@/pages/Index';
 import { GenreSelector } from '@/components/GenreSelector';
 import ImportFromZip from '@/components/ImportFromZip';
-import { areAssetsMandatory } from '@/lib/assetValidation';
+import { areAssetsMandatory, validateUPC, validateCatalogNumber, validateCopyrightLine } from '@/lib/assetValidation';
 import { FieldTooltip } from '@/components/ui/FieldTooltip';
 import TerritorySelector from '@/components/territory/TerritorySelector';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ReleaseInfoProps {
   data: ReleaseData;
@@ -27,9 +28,58 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
   const [showRemixers, setShowRemixers] = useState(data.remixers.length > 0);
   const [dragActive, setDragActive] = useState(false);
   const [artworkPreview, setArtworkPreview] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const updateData = (updates: Partial<ReleaseData>) => {
     onChange({ ...data, ...updates });
+  };
+
+  const handleUPCBlur = () => {
+    if (data.upc && data.upc.trim() !== '') {
+      const result = validateUPC(data.upc);
+      if (!result.isValid) {
+        toast({
+          variant: "destructive",
+          title: "Invalid UPC",
+          description: result.errorMessage,
+        });
+      }
+    }
+  };
+
+  const handleCatalogNumberBlur = () => {
+    if (data.catalogNumber && data.catalogNumber.trim() !== '') {
+      const result = validateCatalogNumber(data.catalogNumber);
+      if (!result.isValid) {
+        toast({
+          variant: "destructive",
+          title: "Invalid Catalog Number",
+          description: result.errorMessage,
+        });
+      }
+    }
+  };
+
+  const handleCLineBlur = () => {
+    const result = validateCopyrightLine(data.albumCLine, 'C');
+    if (!result.isValid) {
+      toast({
+        variant: "destructive",
+        title: "Invalid C Line",
+        description: result.errorMessage,
+      });
+    }
+  };
+
+  const handlePLineBlur = () => {
+    const result = validateCopyrightLine(data.albumPLine, 'P');
+    if (!result.isValid) {
+      toast({
+        variant: "destructive",
+        title: "Invalid P Line",
+        description: result.errorMessage,
+      });
+    }
   };
 
   const updateArtistList = (listName: 'artists' | 'featuredArtists' | 'remixers', index: number, value: string) => {
@@ -450,7 +500,8 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
                 id="catalogNumber"
                 value={data.catalogNumber || ''}
                 onChange={(e) => updateData({ catalogNumber: e.target.value })}
-                placeholder="e.g., ABC-123"
+                onBlur={handleCatalogNumberBlur}
+                placeholder="ABC123"
               />
             </div>
             <div>
@@ -463,7 +514,8 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
                 id="upc"
                 value={data.upc || ''}
                 onChange={(e) => updateData({ upc: e.target.value })}
-                placeholder="12 or 13 digits"
+                onBlur={handleUPCBlur}
+                placeholder="123456789012 or 1234567890123"
               />
             </div>
           </div>
@@ -487,6 +539,7 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
               id="albumCLine"
               value={data.albumCLine}
               onChange={(e) => updateData({ albumCLine: e.target.value })}
+              onBlur={handleCLineBlur}
               placeholder="2025 Example Records"
             />
           </div>
@@ -501,6 +554,7 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
               id="albumPLine"
               value={data.albumPLine}
               onChange={(e) => updateData({ albumPLine: e.target.value })}
+              onBlur={handlePLineBlur}
               placeholder="2025 Example Records"
             />
           </div>

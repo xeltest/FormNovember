@@ -13,9 +13,10 @@ interface TrackMetadataSectionProps {
   track: TrackData;
   onChange: (updates: Partial<TrackData>) => void;
   showValidation: boolean;
+  onCopyFromRelease: () => void;
 }
 
-const TrackMetadataSection = ({ track, onChange, showValidation }: TrackMetadataSectionProps) => {
+const TrackMetadataSection = ({ track, onChange, showValidation, onCopyFromRelease }: TrackMetadataSectionProps) => {
   const [showMixVersion, setShowMixVersion] = useState(!!track.mixVersion);
   const [dragActive, setDragActive] = useState(false);
 
@@ -49,7 +50,18 @@ const TrackMetadataSection = ({ track, onChange, showValidation }: TrackMetadata
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Track Information</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Track Information</CardTitle>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onCopyFromRelease}
+            className="text-xs"
+          >
+            Copy from Release Info
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>

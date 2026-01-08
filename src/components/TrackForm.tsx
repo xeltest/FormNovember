@@ -18,6 +18,16 @@ const TrackForm = ({ track, onChange, releaseData, showValidation }: TrackFormPr
     onChange({ ...track, ...updates });
   };
 
+  const copyFromReleaseInfo = () => {
+    updateTrack({
+      title: releaseData.title,
+      mixVersion: releaseData.mixVersion,
+      artists: [...releaseData.artists],
+      featuredArtists: [...releaseData.featuredArtists],
+      remixers: [...releaseData.remixers]
+    });
+  };
+
   // Handle instrumental language change
   useEffect(() => {
     if (track.language === 'Instrumental' && track.explicitContent !== 'no') {
@@ -27,7 +37,12 @@ const TrackForm = ({ track, onChange, releaseData, showValidation }: TrackFormPr
 
   return (
     <div className="space-y-6">
-      <TrackMetadataSection track={track} onChange={updateTrack} showValidation={showValidation} />
+      <TrackMetadataSection
+        track={track}
+        onChange={updateTrack}
+        showValidation={showValidation}
+        onCopyFromRelease={copyFromReleaseInfo}
+      />
       <TrackArtistsSection track={track} onChange={updateTrack} />
       <ContributorsSection track={track} onChange={updateTrack} />
       <TrackDetailsSection track={track} onChange={updateTrack} />

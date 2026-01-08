@@ -13,7 +13,16 @@ import {
 import { CheckCircle, AlertCircle, Music, Users, Globe, Upload, Download, FileArchive, Mail } from 'lucide-react';
 import { ReleaseData, TrackData } from '@/pages/Index';
 import JSZip from 'jszip';
-import { validateAllAssets, getAssetValidationMessage, getDetailedValidationMessage } from '@/lib/assetValidation';
+import {
+  validateAllAssets,
+  getAssetValidationMessage,
+  getDetailedValidationMessage,
+  validateAllIdentifiers,
+  getIdentifierBlockingMessages,
+  validateSingleTrackMatching,
+  getSingleTrackMismatchMessage,
+  cleanISRC
+} from '@/lib/assetValidation';
 import { getExportLabel } from '@/constants/genres';
 import { COUNTRY_CODES } from '@/constants/territories';
 
@@ -45,6 +54,18 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
     if (!releaseData.albumGenre) issues.push('Album genre is required');
     if (!releaseData.albumCLine) issues.push('Album C Line is required');
     if (!releaseData.albumPLine) issues.push('Album P Line is required');
+
+    // Identifier format validation - BLOCKING
+    const identifierValidation = validateAllIdentifiers(releaseData, tracks);
+    const identifierMessages = getIdentifierBlockingMessages(identifierValidation);
+    issues.push(...identifierMessages);
+
+    // Single-track field matching validation - BLOCKING
+    const singleTrackMismatches = validateSingleTrackMatching(releaseData, tracks);
+    const singleTrackMessage = getSingleTrackMismatchMessage(singleTrackMismatches);
+    if (singleTrackMessage) {
+      issues.push(singleTrackMessage);
+    }
 
     // Track validation - use detailed validation message
     const detailedTrackMessage = getDetailedValidationMessage(tracks);
@@ -340,8 +361,8 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
         track.title, // Track Title
         track.mixVersion || '', // Mix Version
         track.remixers.join('|'), // Remixer
-        track.isrcCode || '', // ISRC code
-        track.secondaryIsrc || '', // Secondary ISRC code
+        track.isrcCode ? cleanISRC(track.isrcCode) : '', // ISRC code
+        track.secondaryIsrc ? cleanISRC(track.secondaryIsrc) : '', // Secondary ISRC code
         track.language, // Language
         '', // Duration - leave blank
         getExportLabel(track.trackGenre), // Sub-Genre
@@ -537,8 +558,8 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
           row.getCell(28).value = track.title;
           row.getCell(29).value = track.mixVersion || '';
           row.getCell(30).value = track.remixers.join('|');
-          row.getCell(31).value = track.isrcCode || '';
-          row.getCell(32).value = track.secondaryIsrc || '';
+          row.getCell(31).value = track.isrcCode ? cleanISRC(track.isrcCode) : '';
+          row.getCell(32).value = track.secondaryIsrc ? cleanISRC(track.secondaryIsrc) : '';
           row.getCell(33).value = track.language;
           row.getCell(34).value = '';
           row.getCell(35).value = getExportLabel(track.trackGenre);

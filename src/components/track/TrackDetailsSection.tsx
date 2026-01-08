@@ -11,6 +11,8 @@ import { Plus, X } from 'lucide-react';
 import { TrackData } from '@/pages/Index';
 import { GenreSelector } from '@/components/GenreSelector';
 import { FieldTooltip } from '@/components/ui/FieldTooltip';
+import { useToast } from '@/components/ui/use-toast';
+import { validateISRC } from '@/lib/assetValidation';
 
 interface TrackDetailsSectionProps {
   track: TrackData;
@@ -20,6 +22,34 @@ interface TrackDetailsSectionProps {
 const languages = ['English', 'Spanish', 'French', 'German', 'Italian', 'Portuguese', 'Instrumental', 'Other'];
 
 const TrackDetailsSection = ({ track, onChange }: TrackDetailsSectionProps) => {
+  const { toast } = useToast();
+
+  const handleISRCBlur = () => {
+    if (track.isrcCode && track.isrcCode.trim() !== '') {
+      const result = validateISRC(track.isrcCode);
+      if (!result.isValid) {
+        toast({
+          variant: "destructive",
+          title: "Invalid ISRC",
+          description: result.errorMessage,
+        });
+      }
+    }
+  };
+
+  const handleSecondaryISRCBlur = () => {
+    if (track.secondaryIsrc && track.secondaryIsrc.trim() !== '') {
+      const result = validateISRC(track.secondaryIsrc);
+      if (!result.isValid) {
+        toast({
+          variant: "destructive",
+          title: "Invalid Secondary ISRC",
+          description: result.errorMessage,
+        });
+      }
+    }
+  };
+
   const updatePublisher = (index: number, value: string) => {
     const newPublishers = [...track.publishers];
     newPublishers[index] = value;
@@ -104,7 +134,8 @@ const TrackDetailsSection = ({ track, onChange }: TrackDetailsSectionProps) => {
               id="isrcCode"
               value={track.isrcCode || ''}
               onChange={(e) => onChange({ isrcCode: e.target.value })}
-              placeholder="e.g., USMC81234567"
+              onBlur={handleISRCBlur}
+              placeholder="USMC12345678 or US-MC1-23-45678"
             />
           </div>
 
@@ -133,7 +164,8 @@ const TrackDetailsSection = ({ track, onChange }: TrackDetailsSectionProps) => {
               id="secondaryIsrc"
               value={track.secondaryIsrc || ''}
               onChange={(e) => onChange({ secondaryIsrc: e.target.value })}
-              placeholder="e.g., USMC87654321"
+              onBlur={handleSecondaryISRCBlur}
+              placeholder="USMC12345678 or US-MC1-23-45678"
             />
           </div>
         )}
