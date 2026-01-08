@@ -11,9 +11,22 @@ interface TrackFormProps {
   onChange: (track: TrackData) => void;
   releaseData: ReleaseData;
   showValidation: boolean;
+  tracks: TrackData[];
+  currentTrackIndex: number;
+  onCopyFromTrack: (sourceIndex: number) => void;
+  getTrackDisplayTitle: (track: TrackData, index: number) => string;
 }
 
-const TrackForm = ({ track, onChange, releaseData, showValidation }: TrackFormProps) => {
+const TrackForm = ({
+  track,
+  onChange,
+  releaseData,
+  showValidation,
+  tracks,
+  currentTrackIndex,
+  onCopyFromTrack,
+  getTrackDisplayTitle
+}: TrackFormProps) => {
   const updateTrack = (updates: Partial<TrackData>) => {
     onChange({ ...track, ...updates });
   };
@@ -42,6 +55,10 @@ const TrackForm = ({ track, onChange, releaseData, showValidation }: TrackFormPr
         onChange={updateTrack}
         showValidation={showValidation}
         onCopyFromRelease={copyFromReleaseInfo}
+        tracks={tracks}
+        currentTrackIndex={currentTrackIndex}
+        onCopyFromTrack={onCopyFromTrack}
+        getTrackDisplayTitle={getTrackDisplayTitle}
       />
       <TrackArtistsSection track={track} onChange={updateTrack} />
       <ContributorsSection track={track} onChange={updateTrack} />

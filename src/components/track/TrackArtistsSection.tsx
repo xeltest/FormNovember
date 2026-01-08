@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,20 @@ interface TrackArtistsSectionProps {
 const TrackArtistsSection = ({ track, onChange }: TrackArtistsSectionProps) => {
   const [showFeaturedArtists, setShowFeaturedArtists] = useState(track.featuredArtists.length > 0);
   const [showRemixers, setShowRemixers] = useState(track.remixers.length > 0);
+
+  // Auto-expand featured artists section when data is populated (e.g., from "Copy from Release Info")
+  useEffect(() => {
+    if (track.featuredArtists.length > 0) {
+      setShowFeaturedArtists(true);
+    }
+  }, [track.featuredArtists.length]);
+
+  // Auto-expand remixers section when data is populated (e.g., from "Copy from Release Info")
+  useEffect(() => {
+    if (track.remixers.length > 0) {
+      setShowRemixers(true);
+    }
+  }, [track.remixers.length]);
 
   const updateArtistList = (listName: 'artists' | 'featuredArtists' | 'remixers', index: number, value: string) => {
     const newList = [...track[listName]];

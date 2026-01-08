@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ReleaseData } from '@/pages/Index';
 import { CONTINENTS, getCountryCode, getTotalCountries } from '@/constants/territories';
+import { FieldTooltip } from '@/components/ui/FieldTooltip';
 import TerritoryPanel from './TerritoryPanel';
 import { TerritoryNode } from './types';
 
@@ -236,7 +236,13 @@ const TerritorySelector: React.FC<TerritorySelectorProps> = ({
           checked={data.isWorldwide}
           onCheckedChange={handleWorldwideChange}
         />
-        <Label htmlFor="worldwide" className="mb-0">Release worldwide</Label>
+        <div className="flex-1">
+          <FieldTooltip
+            label="Release worldwide"
+            fieldKey="releaseWorldwide"
+            htmlFor="worldwide"
+          />
+        </div>
       </div>
 
       {/* Territory Selection Panels */}
@@ -263,6 +269,7 @@ const TerritorySelector: React.FC<TerritorySelectorProps> = ({
               nodes={territoryNodes}
               expandedNodes={expandedIncluded}
               onToggleExpand={toggleExpandedIncluded}
+              tooltipKey="includedTerritories"
             />
 
             {/* Excluded Panel */}
@@ -277,6 +284,7 @@ const TerritorySelector: React.FC<TerritorySelectorProps> = ({
               nodes={territoryNodes}
               expandedNodes={expandedExcluded}
               onToggleExpand={toggleExpandedExcluded}
+              tooltipKey="excludedTerritories"
             />
           </div>
         </div>

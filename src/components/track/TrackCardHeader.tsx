@@ -2,9 +2,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronDown, ChevronUp, Copy, Trash2, GripVertical, Files } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trash2, GripVertical } from 'lucide-react';
 import { TrackData } from '@/pages/Index';
-import CopyTrackModal from '@/components/CopyTrackModal';
 
 interface TrackCardHeaderProps {
   track: TrackData;
@@ -33,7 +32,6 @@ const TrackCardHeader = ({
   onCopyFromTrack,
   onDragStart
 }: TrackCardHeaderProps) => {
-  const [copyModalOpen, setCopyModalOpen] = React.useState(false);
   return (
     <CardHeader 
       className="cursor-pointer hover:bg-accent/50"
@@ -74,34 +72,6 @@ const TrackCardHeader = ({
               <Trash2 className="w-4 h-4" />
             </Button>
           )}
-          
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onPrefillFromRelease();
-            }}
-            className="text-blue-600 hover:text-blue-800"
-          >
-            <Copy className="w-4 h-4 mr-1" />
-            Copy Release Info
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              setCopyModalOpen(true);
-            }}
-            className="text-green-600 hover:text-green-800"
-          >
-            <Files className="w-4 h-4 mr-1" />
-            Duplicate Track
-          </Button>
 
           {isExpanded ? (
             <ChevronUp className="w-5 h-5" />
@@ -110,15 +80,6 @@ const TrackCardHeader = ({
           )}
         </div>
       </CardTitle>
-
-      <CopyTrackModal
-        tracks={tracks}
-        onCopy={onCopyFromTrack}
-        getTrackDisplayTitle={getTrackDisplayTitle}
-        excludeIndex={index}
-        open={copyModalOpen}
-        onOpenChange={setCopyModalOpen}
-      />
     </CardHeader>
   );
 };

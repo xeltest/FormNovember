@@ -1,24 +1,46 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, X, Upload, AlertCircle } from 'lucide-react';
+import { Plus, X, Upload, AlertCircle, Files } from 'lucide-react';
 import { TrackData } from '@/pages/Index';
 import { areAssetsMandatory } from '@/lib/assetValidation';
 import { FieldTooltip } from '@/components/ui/FieldTooltip';
+import CopyTrackModal from '@/components/CopyTrackModal';
 
 interface TrackMetadataSectionProps {
   track: TrackData;
   onChange: (updates: Partial<TrackData>) => void;
   showValidation: boolean;
   onCopyFromRelease: () => void;
+  tracks: TrackData[];
+  currentTrackIndex: number;
+  onCopyFromTrack: (sourceIndex: number) => void;
+  getTrackDisplayTitle: (track: TrackData, index: number) => string;
 }
 
-const TrackMetadataSection = ({ track, onChange, showValidation, onCopyFromRelease }: TrackMetadataSectionProps) => {
+const TrackMetadataSection = ({
+  track,
+  onChange,
+  showValidation,
+  onCopyFromRelease,
+  tracks,
+  currentTrackIndex,
+  onCopyFromTrack,
+  getTrackDisplayTitle
+}: TrackMetadataSectionProps) => {
   const [showMixVersion, setShowMixVersion] = useState(!!track.mixVersion);
   const [dragActive, setDragActive] = useState(false);
+  const [copyModalOpen, setCopyModalOpen] = useState(false);
+
+  // Auto-expand mix/version section when data is populated (e.g., from "Copy from Release Info")
+  useEffect(() => {
+    if (track.mixVersion && track.mixVersion.trim() !== '') {
+      setShowMixVersion(true);
+    }
+  }, [track.mixVersion]);
 
   const handleFileUpload = (file: File) => {
     onChange({ audioFile: file });
@@ -52,15 +74,27 @@ const TrackMetadataSection = ({ track, onChange, showValidation, onCopyFromRelea
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Track Information</CardTitle>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onCopyFromRelease}
-            className="text-xs"
-          >
-            Copy from Release Info
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onCopyFromRelease}
+              className="text-xs"
+            >
+              Copy from Release Info
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setCopyModalOpen(true)}
+              className="text-xs"
+            >
+              <Files className="w-3 h-3 mr-1" />
+              Duplicate Track
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -164,6 +198,15 @@ const TrackMetadataSection = ({ track, onChange, showValidation, onCopyFromRelea
           </div>
         </div>
       </CardContent>
+
+      <CopyTrackModal
+        tracks={tracks}
+        onCopy={onCopyFromTrack}
+        getTrackDisplayTitle={getTrackDisplayTitle}
+        excludeIndex={currentTrackIndex}
+        open={copyModalOpen}
+        onOpenChange={setCopyModalOpen}
+      />
     </Card>
   );
 };

@@ -2,35 +2,38 @@
 
 ## Pending Tasks
 
-### Clean Up Genre List - 2025-12-02 10:33
+### Reorganize Track Duplication UI - 2026-01-08 22:50
 
-- **Clean up and organize genre-related files** - Review and clean up the genre data structure, removing duplicates, backup files, or unused genre definitions. **Problem:** Multiple genre-related files exist (genres.ts modified, genres.json and genresbackuppp.ts untracked), suggesting incomplete cleanup or migration work that may cause confusion or inconsistencies in genre selection. **Files:** `src/constants/genres.ts`, `genres.json`, `genresbackuppp.ts`. **Solution:** Review all three files to determine which is the source of truth, consolidate genre data if needed, remove backup/temporary files, and ensure the genre structure is clean and well-organized.
+- **Move duplicate track modal to per-track button** - Relocate the "Duplicate a Track Modal" from top-level controls to individual track-level buttons positioned near the "Copy Release Info Button", renamed as "Copy Existing Track". **Problem:** Current UI has duplicate track functionality at the top level, but it would be more intuitive and efficient to have this action available directly on each track, similar to how the copy release info button works. **Files:** `src/pages/Index.tsx`, `src/components/TrackForm.tsx`, `src/components/CopyTrackModal.tsx`. **Solution:** Add "Copy Existing Track" button to each track card/section near the existing "Copy Release Info Button". Keep the modal logic but trigger it from the per-track button instead of top-level controls.
 
----
+- **Remove top-level track action buttons** - Remove the two buttons at the top: "add Blank Track" and "Duplicate a Track". **Problem:** These top-level buttons create redundant UI now that functionality is being reorganized - add blank track should be at the bottom as a natural continuation point, and duplicate is moving to per-track buttons. **Files:** `src/pages/Index.tsx`. **Solution:** Remove both button components from the top section of the tracks area.
 
-### Clean Up Tool Tips - 2025-12-011 23:37
-
-- **Clean up and organize tool tips** - Review and clean up the Tool Tips, re-writing them to apply to our needs specifically. and ensure they are presented in an aesthetically pleasing manner.
+- **Relocate and rename Add Track button** - Move the "Add a blank Track" button to the bottom of the tracks section and rename it to "Add New Track". **Problem:** Having the add track button at the top feels backwards - users naturally expect to add a new track after scrolling through existing tracks, and "Add New Track" is clearer terminology than "Add a blank Track". **Files:** `src/pages/Index.tsx`. **Solution:** Move button component to render after all existing tracks and update button text from "Add a blank Track" to "Add New Track".
 
 ---
 
-### Hover for incomplete form section - 2025-12-011 23:40
-
-- **Improve wording** - Instead of "Tracks 1,2 are missing audio files" say which tracks are missing manatory information an which mndatory information they are missing.
 
 ---
 
-### Territory section - 2025-12-011 23:42
+### Spotify-Specific Artist Export - 2026-01-08 00:58
 
-- **Restructure/Design** -  left right divide, broken into continents with a drill down interface
----
+- **Add "Make Primary on Spotify" toggle for featured artists and remixers** - Add checkbox/toggle at release and track level that appears when featured artist or remixer is added. **Problem:** Spotify requires different artist attribution than other platforms - featured artists and remixers sometimes need to be listed as primary artists for proper credit and royalty distribution on Spotify specifically. **Files:** `src/components/ReleaseInfo.tsx`, `src/components/track/TrackArtistsSection.tsx`, `src/pages/Index.tsx`. **Solution:** Add boolean field "makeSpotifyPrimary" or similar to featured artist and remixer data structures. Display toggle when these artists are added with label "Make Primary on Spotify" or "Show as Primary Artist on Spotify".
 
-### Copy From Track - 2025-12-011 23:42
+- **Generate Spotify-specific export files with modified artist data** - Create duplicate CSV and Excel files with "_spotify" suffix when Spotify toggle is enabled. **Problem:** Need to export two sets of metadata files - standard files for most platforms and Spotify-specific files where selected featured artists/remixers are promoted to primary artist status by appending them to the primary artists list. **Files:** `src/components/ExportStep.tsx`. **Solution:** When exporting, check if any tracks/release have makeSpotifyPrimary enabled. If yes, generate standard files (metadata.csv, metadata.xlsx) plus Spotify variants (metadata_spotify.csv, metadata_spotify.xlsx) where the featured artist/remixer with flag enabled is appended to the primary artists array. Final export ZIP contains: artwork, audio files, 2 CSVs, and 2 Excel files.
 
-- **Change button Woring** -  to "Duplicate a track" and Choose a track to duplicate (potentially ad a tool tip telling people to use this feature if the components of the track are similar)
 ---
 
 ## Completed Tasks
+
+### ✅ Add Tooltips to Territory Section - Completed 2026-01-08
+
+- **Add tooltip to "Release worldwide" header** - Add informative tooltip next to the "Release worldwide" checkbox header explaining functionality. **Status:** COMPLETED - Implemented using FieldTooltip component with custom tooltip content. Tooltip explains that checking the box makes the release available worldwide, while unchecking enables territory-specific restrictions. **Files modified:** `src/components/territory/TerritorySelector.tsx`, `src/lib/tooltipContent.ts`.
+
+- **Add tooltips for included and excluded territories** - When "Release worldwide" is unchecked, add separate tooltips for the included territories panel and excluded territories panel. **Status:** COMPLETED - Added info icon tooltips to both panel headers using shadcn/ui Tooltip components. Tooltips explain the purpose of each panel and how territories can be moved between them. **Files modified:** `src/components/territory/TerritoryPanel.tsx`, `src/components/territory/TerritorySelector.tsx`, `src/components/territory/types.ts`, `src/lib/tooltipContent.ts`. **Plan:** `.planning/territory-tooltips-PLAN.md`.
+
+### ✅ Territory Section Redesign - Completed 2025-12-23
+
+- **Restructure/Design territory selector** - Create dual-panel UI with left-right divide, broken into continents with drill-down interface. **Status:** COMPLETED - Comprehensive implementation prompt created with detailed specifications for hierarchical accordion structure, search functionality, real-time counts, and backward compatibility. **Prompt:** `prompts/001-territory-selector-ui.md`. Ready for implementation when needed.
 
 ### ✅ Form Field Tooltips - Completed 2025-12-01
 
@@ -51,3 +54,34 @@
 ### Fix Form Field Label Spacing - 2025-12-02 10:32
 
 - **Increase spacing between field labels and input fields** - Add proper margin/padding between form field labels and their corresponding input fields throughout all form components. **Problem:** Field labels are positioned too close to the input fields below them, creating a cramped appearance and poor visual hierarchy that makes forms harder to read and use. **Files:** `src/components/ReleaseInfo.tsx`, `src/components/TrackForm.tsx`, `src/components/TrackDetails.tsx`, `src/components/track/TrackMetadataSection.tsx`, `src/components/track/TrackDetailsSection.tsx`, `src/components/track/ContributorsSection.tsx`, `src/components/track/TrackArtistsSection.tsx` (all form components that display labels and inputs). **Solution:** Add consistent spacing (e.g., `mb-2` or `mb-3`) to label elements or their wrapper divs. Check existing spacing utilities and standardize across all form fields for visual consistency.
+
+--- 
+### Hover for incomplete form section - 2025-12-011 23:40
+
+- **Hover for incomplete form section- Improve wording** - Instead of "Tracks 1,2 are missing audio files" say which tracks are missing manatory information an which mndatory information they are missing.
+
+---
+### Clean Up Genre List - 2025-12-02 10:33
+
+- **Clean up and organize genre-related files** - Review and clean up the genre data structure, removing duplicates, backup files, or unused genre definitions. **Problem:** Multiple genre-related files exist (genres.ts modified, genres.json and genresbackuppp.ts untracked), suggesting incomplete cleanup or migration work that may cause confusion or inconsistencies in genre selection. **Files:** `src/constants/genres.ts`, `genres.json`, `genresbackuppp.ts`. **Solution:** Review all three files to determine which is the source of truth, consolidate genre data if needed, remove backup/temporary files, and ensure the genre structure is clean and well-organized.
+
+---
+
+### Clean Up Tool Tips - 2025-12-011 23:37
+
+- **Clean up and organize tool tips** - Review and clean up the Tool Tips, re-writing them to apply to our needs specifically. and ensure they are presented in an aesthetically pleasing manner.
+---
+
+### Copy From Track - 2025-12-011 23:42
+
+- **Change button Woring** -  to "Duplicate a track" and Choose a track to duplicate (potentially ad a tool tip telling people to use this feature if the components of the track are similar)
+---
+### Add Comprehensive Form Validation - 2026-01-07 14:25
+
+- **Implement format validation for UPC, ISRC, Cat Numbers, C and P Lines** - Add validation to ensure industry-standard identifiers follow correct formats when supplied. **Problem:** Form currently accepts UPCs, ISRCs, Catalog Numbers, and C/P Lines without validating their structure, which could lead to downstream distribution issues or rejections. **Files:** `src/lib/assetValidation.ts`, `src/components/ReleaseInfo.tsx`, `src/components/TrackForm.tsx`. **Solution:** Create validation functions for each identifier type (UPC: 12 digits, ISRC: CC-XXX-YY-NNNNN format, etc.) and integrate with existing form validation. Display clear error messages for invalid formats.
+
+- **Enforce single-track release field matching** - Ensure release-level and track-level fields match when a release contains only one track. **Problem:** For single-track releases, critical metadata like Title, Mix/Version, Artist, Featured Artist, and Remixers must match between release and track levels to meet distribution requirements, but currently there's no validation or auto-sync mechanism. **Files:** `src/components/ReleaseInfo.tsx`, `src/components/TrackForm.tsx`, `src/pages/Index.tsx`. **Solution:** Add validation check that triggers when track count equals 1. Compare Release Title with Track Title, Mix/Version fields at both levels, and all artist fields (Artist, Featured Artist, Remixers). Either auto-sync values or display validation errors highlighting mismatches.
+
+---
+
+

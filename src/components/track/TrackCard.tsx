@@ -78,6 +78,10 @@ const TrackCard = ({
             onChange={onUpdateTrack}
             releaseData={releaseData}
             showValidation={showValidation}
+            tracks={tracks}
+            currentTrackIndex={index}
+            onCopyFromTrack={onCopyFromTrack}
+            getTrackDisplayTitle={getTrackDisplayTitle}
           />
         </CardContent>
       )}

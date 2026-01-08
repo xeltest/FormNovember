@@ -29,12 +29,13 @@ import { COUNTRY_CODES } from '@/constants/territories';
 interface ExportStepProps {
   releaseData: ReleaseData;
   tracks: TrackData[];
+  exportComplete: boolean;
+  onExportComplete: (complete: boolean) => void;
 }
 
-const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
+const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: ExportStepProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState(0);
-  const [exportComplete, setExportComplete] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const validateData = () => {
@@ -94,8 +95,8 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
     }
 
     setIsExporting(false);
-    setExportComplete(true);
-    
+    onExportComplete(true);
+
     // Here you would normally handle the actual export
     console.log('Export data:', { releaseData, tracks });
   };
@@ -631,7 +632,7 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      setExportComplete(true);
+      onExportComplete(true);
       setShowSuccessModal(true);
     } catch (error) {
       console.error('Error creating ZIP:', error);
@@ -796,9 +797,9 @@ const ExportStep = ({ releaseData, tracks }: ExportStepProps) => {
                     <AlertCircle className="w-5 h-5 mr-2" />
                     <span>{issues.length} issue{issues.length !== 1 ? 's' : ''} found</span>
                   </div>
-                  <ul className="space-y-1">
+                  <ul className="space-y-1 list-disc pl-5">
                     {issues.map((issue, index) => (
-                      <li key={index} className="text-sm text-red-600">â€¢ {issue}</li>
+                      <li key={index} className="text-sm text-red-600">{issue}</li>
                     ))}
                   </ul>
                 </div>

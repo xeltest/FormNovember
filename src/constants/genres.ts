@@ -302,11 +302,6 @@ export const GENRES: GenreNode[] = [
         ]
       },
       {
-        "id": "chill-out-fitness",
-        "label": "Chill-Out/Fitness",
-        "exportLabel": "Chill-Out/Fitness"
-      },
-      {
         "id": "club",
         "label": "Club",
         "exportLabel": "Club"
@@ -325,6 +320,16 @@ export const GENRES: GenreNode[] = [
             "id": "dance-pop",
             "label": "Dance/Pop",
             "exportLabel": "Dance/Pop"
+          },
+          {
+            "id": "euro-dance",
+            "label": "Euro Dance",
+            "exportLabel": "Euro Dance"
+          },
+          {
+            "id": "indie-dance",
+            "label": "Indie Dance",
+            "exportLabel": "Indie Dance"
           }
         ]
       },
@@ -362,7 +367,12 @@ export const GENRES: GenreNode[] = [
             "id": "nu-disco-disco",
             "label": "Nu Disco / Disco",
             "exportLabel": "Nu Disco / Disco"
-          }
+          },
+          {
+            "id": "indie-nu-disco",
+            "label": "Indie / Nu Disco",
+            "exportLabel": "Indie / Nu Disco"
+          },
         ]
       },
       {
@@ -454,47 +464,34 @@ export const GENRES: GenreNode[] = [
       {
         "id": "electronic",
         "label": "Electronic",
-        "exportLabel": "Electronic"
-      },
-      {
-        "id": "electronica",
-        "label": "Electronica",
-        "exportLabel": "Electronica"
-      },
-      {
-        "id": "euro-dance",
-        "label": "Euro Dance",
-        "exportLabel": "Euro Dance"
-      },
-      {
-        "id": "experimental",
-        "label": "Experimental",
-        "exportLabel": "Experimental"
+        "exportLabel": "Electronic",
+        "children": [
+          {
+            "id": "electronica",
+            "label": "Electronica",
+            "exportLabel": "Electronica"
+          },
+          {
+            "id": "glitch-hop",
+            "label": "Glitch Hop",
+            "exportLabel": "Glitch Hop"
+          },
+          {
+            "id": "experimental",
+            "label": "Experimental",
+            "exportLabel": "Experimental"
+          },
+          {
+            "id": "frenchcore",
+            "label": "Frenchcore",
+            "exportLabel": "Frenchcore"
+          },
+        ]
       },
       {
         "id": "footwork",
         "label": "Footwork",
         "exportLabel": "Footwork"
-      },
-      {
-        "id": "frenchcore",
-        "label": "Frenchcore",
-        "exportLabel": "Frenchcore"
-      },
-      {
-        "id": "future-bass",
-        "label": "Future Bass",
-        "exportLabel": "Future Bass"
-      },
-      {
-        "id": "future-rave",
-        "label": "Future Rave",
-        "exportLabel": "Future Rave"
-      },
-      {
-        "id": "gabba",
-        "label": "Gabba",
-        "exportLabel": "Gabba"
       },
       {
         "id": "garage",
@@ -519,34 +516,41 @@ export const GENRES: GenreNode[] = [
         ]
       },
       {
-        "id": "glitch-hop",
-        "label": "Glitch Hop",
-        "exportLabel": "Glitch Hop"
-      },
-      {
         "id": "grime",
         "label": "Grime",
         "exportLabel": "Grime"
       },
       {
-        "id": "happy-hardcore",
-        "label": "Happy Hardcore",
-        "exportLabel": "Happy Hardcore"
-      },
-      {
         "id": "hard-dance",
         "label": "Hard Dance",
-        "exportLabel": "Hard Dance"
-      },
-      {
-        "id": "hardcore",
-        "label": "Hardcore",
-        "exportLabel": "Hardcore"
-      },
-      {
-        "id": "hardstyle",
-        "label": "Hardstyle",
-        "exportLabel": "Hardstyle"
+        "exportLabel": "Hard Dance",
+        "children": [
+          {
+            "id": "gabba",
+            "label": "Gabba",
+            "exportLabel": "Gabba"
+          },
+          {
+            "id": "hardcore",
+            "label": "Hardcore",
+            "exportLabel": "Hardcore"
+          },
+          {
+            "id": "hardstyle",
+            "label": "Hardstyle",
+            "exportLabel": "Hardstyle"
+          },
+          {
+            "id": "happy-hardcore",
+            "label": "Happy Hardcore",
+            "exportLabel": "Happy Hardcore"
+          },
+          {
+            "id": "uk-hardcore",
+            "label": "UK Hardcore",
+            "exportLabel": "UK Hardcore"
+          }
+        ]
       },
       {
         "id": "house",
@@ -604,39 +608,15 @@ export const GENRES: GenreNode[] = [
             "exportLabel": "Jackin House"
           },
           {
-            "id": "khelobedhu-house",
-            "label": "Khelobedhu House",
-            "exportLabel": "Khelobedhu House"
-          },
-          {
-            "id": "melodic-house-techno",
-            "label": "Melodic House & Techno",
-            "exportLabel": "Melodic House & Techno"
-          },
-          {
             "id": "melodic-house-techno-melodic-house",
-            "label": "Melodic House & Techno | Melodic House",
+            "label": "Melodic House",
             "exportLabel": "Melodic House & Techno | Melodic House"
           },
-          {
-            "id": "melodic-house-techno-melodic-techno",
-            "label": "Melodic House & Techno | Melodic Techno",
-            "exportLabel": "Melodic House & Techno | Melodic Techno"
-          },
+          
           {
             "id": "organic-house",
             "label": "Organic House",
             "exportLabel": "Organic House"
-          },
-          {
-            "id": "organic-house-downtempo",
-            "label": "Organic House / Downtempo",
-            "exportLabel": "Organic House / Downtempo"
-          },
-          {
-            "id": "progressive",
-            "label": "Progressive",
-            "exportLabel": "Progressive"
           },
           {
             "id": "progressive-house",
@@ -654,11 +634,6 @@ export const GENRES: GenreNode[] = [
             "exportLabel": "Tech House"
           },
           {
-            "id": "tech-house",
-            "label": "Tech-House",
-            "exportLabel": "Tech-House"
-          },
-          {
             "id": "tribal-house",
             "label": "Tribal House",
             "exportLabel": "Tribal House"
@@ -671,36 +646,6 @@ export const GENRES: GenreNode[] = [
         ]
       },
       {
-        "id": "indie-nu-disco",
-        "label": "Indie / Nu Disco",
-        "exportLabel": "Indie / Nu Disco"
-      },
-      {
-        "id": "indie-dance",
-        "label": "Indie Dance",
-        "exportLabel": "Indie Dance"
-      },
-      {
-        "id": "industrial",
-        "label": "Industrial",
-        "exportLabel": "Industrial"
-      },
-      {
-        "id": "latin-tech",
-        "label": "Latin Tech",
-        "exportLabel": "Latin Tech"
-      },
-      {
-        "id": "leftfield-bass",
-        "label": "Leftfield Bass",
-        "exportLabel": "Leftfield Bass"
-      },
-      {
-        "id": "leftfield-house-techno",
-        "label": "Leftfield House & Techno",
-        "exportLabel": "Leftfield House & Techno"
-      },
-      {
         "id": "lounge",
         "label": "Lounge",
         "exportLabel": "Lounge"
@@ -711,29 +656,44 @@ export const GENRES: GenreNode[] = [
         "exportLabel": "Mainstage"
       },
       {
-        "id": "minimal",
-        "label": "Minimal",
-        "exportLabel": "Minimal"
-      },
-      {
-        "id": "minimal-deep-tech",
-        "label": "Minimal / Deep Tech",
-        "exportLabel": "Minimal / Deep Tech"
-      },
-      {
-        "id": "tech",
-        "label": "Tech",
-        "exportLabel": "Tech"
-      },
-      {
         "id": "techno",
         "label": "Techno",
         "exportLabel": "Techno",
         "children": [
           {
+            "id": "future-rave",
+            "label": "Future Rave",
+            "exportLabel": "Future Rave"
+          },
+          {
             "id": "hard-techno",
             "label": "Hard Techno",
             "exportLabel": "Hard Techno"
+          },
+          {
+            "id": "industrial",
+            "label": "Industrial",
+            "exportLabel": "Industrial"
+          },
+          {
+            "id": "melodic-house-techno-melodic-techno",
+            "label": "Melodic Techno",
+            "exportLabel": "Melodic House & Techno | Melodic Techno"
+          },
+          {
+            "id": "minimal",
+            "label": "Minimal",
+            "exportLabel": "Minimal"
+          },
+          {
+            "id": "minimal-deep-tech",
+            "label": "Minimal / Deep Tech",
+            "exportLabel": "Minimal / Deep Tech"
+          },
+          {
+            "id": "tech",
+            "label": "Tech",
+            "exportLabel": "Tech"
           },
           {
             "id": "techno-peak-time-driving",
@@ -862,22 +822,24 @@ export const GENRES: GenreNode[] = [
       {
         "id": "trap",
         "label": "Trap",
-        "exportLabel": "Trap"
-      },
-      {
-        "id": "trap-wave-phonk",
-        "label": "Trap / Wave | Phonk",
-        "exportLabel": "Trap / Wave | Phonk"
-      },
-      {
-        "id": "trap-wave-trap",
-        "label": "Trap / Wave | Trap",
-        "exportLabel": "Trap / Wave | Trap"
-      },
-      {
-        "id": "trap-wave-wave",
-        "label": "Trap / Wave | Wave",
-        "exportLabel": "Trap / Wave | Wave"
+        "exportLabel": "Trap",
+        "children": [
+          {
+            "id": "future-bass",
+            "label": "Future Bass",
+            "exportLabel": "Future Bass"
+          },
+          {
+            "id": "trap-wave-phonk",
+            "label": "Phonk",
+            "exportLabel": "Trap / Wave | Phonk"
+          },
+          {
+            "id": "trap-wave-wave",
+            "label": "Wave",
+            "exportLabel": "Trap / Wave | Wave"
+          }
+        ]
       },
       {
         "id": "uk-bass",
@@ -890,24 +852,9 @@ export const GENRES: GenreNode[] = [
         "exportLabel": "UK Funky"
       },
       {
-        "id": "uk-hardcore",
-        "label": "UK Hardcore",
-        "exportLabel": "UK Hardcore"
-      },
-      {
         "id": "fitness",
         "label": "Fitness",
         "exportLabel": "Fitness"
-      },
-      {
-        "id": "fitness-instrumental",
-        "label": "Fitness/Instrumental",
-        "exportLabel": "Fitness/Instrumental"
-      },
-      {
-        "id": "fitness-workout",
-        "label": "Fitness/Workout",
-        "exportLabel": "Fitness/Workout"
       }
     ]
   },
@@ -1023,7 +970,7 @@ export const GENRES: GenreNode[] = [
   {
     "id": "other",
     "label": "Other",
-    "exportLabel": "Other",
+    "exportLabel": "DJ Tools",
     "children": [
       {
         "id": "accapella",
@@ -1322,15 +1269,9 @@ export const GENRES: GenreNode[] = [
             "exportLabel": "Hip Hop/R&B"
           },
           {
-            "id": "neo-soul",
-            "label": "Neo-Soul",
-            "exportLabel": "Neo-Soul"
-          },
-          {
             "id": "r-b-soul",
             "label": "R&B/Soul",
             "exportLabel": "R&B/Soul",
-            "children": []
           },
           {
             "id": "rhythm-blues",

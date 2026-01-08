@@ -2,12 +2,12 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, ChevronLeft, Music, Upload, Download, AlertCircle } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Music, Upload, Download, Mail, AlertCircle } from 'lucide-react';
 import DarkModeToggle from '@/components/DarkModeToggle';
 import ReleaseInfo from '@/components/ReleaseInfo';
 import TrackDetails from '@/components/TrackDetails';
 import ExportStep from '@/components/ExportStep';
-import { validateAllAssets, getAssetValidationMessage, areAssetsMandatory } from '@/lib/assetValidation';
+import { validateAllAssets, getAssetValidationMessage, getDetailedValidationMessage, areAssetsMandatory } from '@/lib/assetValidation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export interface ReleaseData {
@@ -54,6 +54,7 @@ export interface TrackData {
 const Index = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [attemptedProceed, setAttemptedProceed] = useState(false);
+  const [exportComplete, setExportComplete] = useState(false);
   const [releaseData, setReleaseData] = useState<ReleaseData>({
     title: '',
     artists: [''],
@@ -87,7 +88,8 @@ const Index = () => {
   const steps = [
     { number: 1, title: 'Release Info', icon: Music },
     { number: 2, title: 'Track Details', icon: Upload },
-    { number: 3, title: 'Export', icon: Download }
+    { number: 3, title: 'Export', icon: Download },
+    { number: 4, title: 'Send to Xelon', icon: Mail }
   ];
 
   const validateStep = (step: number): boolean => {
@@ -123,6 +125,10 @@ const Index = () => {
       return basicValidation && assetValidation.missingAudioTracks.length === 0;
     }
 
+    if (step === 3) {
+      return exportComplete;
+    }
+
     return true;
   };
 
@@ -131,7 +137,7 @@ const Index = () => {
   };
 
   const handleNext = () => {
-    if (canProceed(currentStep) && currentStep < 3) {
+    if (canProceed(currentStep) && currentStep < 4) {
       setCurrentStep(currentStep + 1);
       setAttemptedProceed(false); // Reset validation attempt when successfully moving to next step
     } else {
@@ -168,8 +174,14 @@ const Index = () => {
       return 'Please upload release artwork to continue';
     }
 
-    if (currentStep === 2 && assetValidation.missingAudioTracks.length > 0) {
-      return getAssetValidationMessage(false, assetValidation.missingAudioTracks);
+    if (currentStep === 2) {
+      // Use detailed validation message for track step
+      const detailedMessage = getDetailedValidationMessage(tracks);
+      return detailedMessage || null;
+    }
+
+    if (currentStep === 3 && !exportComplete) {
+      return 'Please download the ZIP file to continue';
     }
 
     return null;
@@ -237,10 +249,22 @@ const Index = () => {
           )}
           
           {currentStep === 3 && (
-            <ExportStep 
+            <ExportStep
               releaseData={releaseData}
               tracks={tracks}
+              exportComplete={exportComplete}
+              onExportComplete={setExportComplete}
             />
+          )}
+
+          {currentStep === 4 && (
+            <div className="text-center py-8">
+              <Mail className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <h2 className="text-2xl font-bold mb-2">Send to Xelon</h2>
+              <p className="text-muted-foreground">
+                Email your downloaded ZIP file to submissions@xelondigital.com
+              </p>
+            </div>
           )}
         </Card>
 
@@ -256,7 +280,7 @@ const Index = () => {
             Previous
           </Button>
 
-          {currentStep < 3 && (
+          {currentStep < 4 && (
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>

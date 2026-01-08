@@ -148,9 +148,9 @@ const ImportFromZip: React.FC<ImportFromZipProps> = ({ onImport }) => {
                   <div className="font-medium mb-2">
                     Import completed with {validationWarnings.length} warning(s):
                   </div>
-                  <ul className="space-y-1 text-sm">
+                  <ul className="space-y-1 text-sm list-disc pl-5">
                     {validationWarnings.map((warning, index) => (
-                      <li key={index}>• {warning}</li>
+                      <li key={index}>{warning}</li>
                     ))}
                   </ul>
                   <div className="mt-2 text-sm">

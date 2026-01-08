@@ -1,4 +1,5 @@
 // TypeScript interfaces and types for territory selector components
+import { TooltipFieldKey } from '@/lib/tooltipContent';
 
 export type TerritoryNodeType = 'continent' | 'country';
 
@@ -21,6 +22,7 @@ export interface TerritoryPanelProps {
   nodes: TerritoryNode[];
   expandedNodes: Set<string>;
   onToggleExpand: (nodeId: string) => void;
+  tooltipKey: TooltipFieldKey;
 }
 
 export interface TerritoryTreeProps {
