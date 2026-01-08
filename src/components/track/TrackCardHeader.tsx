@@ -85,7 +85,8 @@ const TrackCardHeader = ({
             }}
             className="text-blue-600 hover:text-blue-800"
           >
-            <Copy className="w-4 h-4" />
+            <Copy className="w-4 h-4 mr-1" />
+            Copy Release Info
           </Button>
 
           <Button
@@ -98,7 +99,8 @@ const TrackCardHeader = ({
             }}
             className="text-green-600 hover:text-green-800"
           >
-            <Files className="w-4 h-4" />
+            <Files className="w-4 h-4 mr-1" />
+            Duplicate Track
           </Button>
 
           {isExpanded ? (
