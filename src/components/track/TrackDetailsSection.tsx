@@ -135,7 +135,7 @@ const TrackDetailsSection = ({ track, onChange }: TrackDetailsSectionProps) => {
               value={track.isrcCode || ''}
               onChange={(e) => onChange({ isrcCode: e.target.value })}
               onBlur={handleISRCBlur}
-              placeholder="USMC12345678 or US-MC1-23-45678"
+              placeholder="International Standard Recording Code"
             />
           </div>
 

@@ -556,7 +556,7 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
                 value={data.upc || ''}
                 onChange={(e) => updateData({ upc: e.target.value })}
                 onBlur={handleUPCBlur}
-                placeholder="123456789012 or 1234567890123"
+                placeholder="12 or 13 Digit Barcode"
               />
             </div>
           </div>
