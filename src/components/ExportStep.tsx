@@ -113,6 +113,22 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
     });
     return fileCount;
   };
+
+  const needsSpotifyExport = (): boolean => {
+    // Check release-level featured artists and remixers
+    const releaseHasSpotifyPrimary =
+      releaseData.featuredArtists.some(a => a.makeSpotifyPrimary) ||
+      releaseData.remixers.some(r => r.makeSpotifyPrimary);
+
+    // Check track-level featured artists and remixers
+    const trackHasSpotifyPrimary = tracks.some(track =>
+      track.featuredArtists.some(a => a.makeSpotifyPrimary) ||
+      track.remixers.some(r => r.makeSpotifyPrimary)
+    );
+
+    return releaseHasSpotifyPrimary || trackHasSpotifyPrimary;
+  };
+
   const buildPitchFormUrl = () => {
     const baseUrl = "https://airtable.com/appncstxdoakDSeBs/pagq9v5PHhRqVqB9N/form";
 
@@ -379,15 +395,254 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
         getExportLabel(releaseData.albumGenre), // Album Genre
         '', // Public Domain - leave blank
         getExportLabel(track.trackGenre), // Genre
-        'N', // Make Featured Artist Primary on Spotify
-        'N', // Make Remixer Primary on Spotify
+        releaseData.featuredArtists.some(a => a.makeSpotifyPrimary) || track.featuredArtists.some(a => a.makeSpotifyPrimary) ? 'Y' : 'N', // Make Featured Artist Primary on Spotify
+        releaseData.remixers.some(r => r.makeSpotifyPrimary) || track.remixers.some(r => r.makeSpotifyPrimary) ? 'Y' : 'N', // Make Remixer Primary on Spotify
         track.lyrics || '', // Lyrics
         '' // Track Credits - leave blank
       ]);
     });
 
     // Convert to CSV string
-    return rows.map(row => 
+    return rows.map(row =>
+      row.map(cell => {
+        // Escape quotes and wrap in quotes if contains comma, quote, or newline
+        const escaped = String(cell).replace(/"/g, '""');
+        return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped;
+      }).join(',')
+    ).join('\n');
+  };
+
+  const generateSpotifyCSV = () => {
+    const rows: string[][] = [];
+
+    // Header row - exact match to the guide
+    rows.push([
+      'Disc Number',
+      'Track Number',
+      'Title Type',
+      'Cat Number',
+      'Label Name',
+      'UPC (barcode)',
+      'Release Date',
+      'Original  Release Date',
+      'Album Artist',
+      'Album Featured Artist',
+      'Album Other Artist',
+      'Album Title',
+      'Album Mix Version',
+      'Track Artist',
+      'Track featured Artist',
+      'Vocalist',
+      'Programming',
+      'Guitar',
+      'Performer Other',
+      'Composer',
+      'Lyricist',
+      'Songwriter',
+      'Songwriter Other',
+      'Producer',
+      'Mix Engineer',
+      'Mastering Engineer',
+      'PE Other',
+      'Track Title',
+      'Mix Version',
+      'Remixer',
+      'ISRC code',
+      'Secondary ISRC code',
+      'Language',
+      'Duration',
+      'Sub-Genre',
+      'Publisher',
+      'Sample Start Time',
+      'Filename',
+      'Explict Content',
+      'Must Remain Bundled/Not for Individual Sale',
+      'ALBUM C LINE',
+      'ALBUM P LINE',
+      'Territory',
+      'Excluded Territory',
+      'Album Genre',
+      'Public Domain',
+      'Genre',
+      'Make Featured Artist Primary on Spotify',
+      'Make Remixer Primary on Spotify',
+      'Lyrics',
+      'Track Credits'
+    ]);
+
+    const territories = getTerritories();
+
+    // Album Artist - start with primary artists, then add Spotify-promoted featured artists and remixers
+    const albumArtists = releaseData.artists.filter(a => a);
+    const spotifyFeaturedArtists = releaseData.featuredArtists
+      .filter(a => a.name && a.makeSpotifyPrimary)
+      .map(a => a.name);
+    const spotifyRemixers = releaseData.remixers
+      .filter(r => r.name && r.makeSpotifyPrimary)
+      .map(r => r.name);
+    const allAlbumArtists = [...albumArtists, ...spotifyFeaturedArtists, ...spotifyRemixers].join('|');
+
+    // Album Other Artist - format remixers as Artist|Remixer||Artist2|Remixer (only those NOT promoted to primary)
+    const albumOtherArtist = releaseData.remixers
+      .filter(r => r.name && !r.makeSpotifyPrimary)
+      .map(r => `${r.name}|Remixer`)
+      .join('||');
+
+    // Track rows - one row per track with release info repeated
+    tracks.forEach((track, index) => {
+      // Track Artist - start with primary artists, then add Spotify-promoted featured artists and remixers
+      const trackArtists = track.artists.filter(a => a);
+      const trackSpotifyFeaturedArtists = track.featuredArtists
+        .filter(a => a.name && a.makeSpotifyPrimary)
+        .map(a => a.name);
+      const trackSpotifyRemixers = track.remixers
+        .filter(r => r.name && r.makeSpotifyPrimary)
+        .map(r => r.name);
+      const allTrackArtists = [...trackArtists, ...trackSpotifyFeaturedArtists, ...trackSpotifyRemixers].join('|');
+
+      // Extract specific performer roles
+      const vocalists = track.performers
+        .filter(p => p.name && p.roles.includes('Vocalist'))
+        .map(p => p.name)
+        .join('|');
+
+      const programming = track.performers
+        .filter(p => p.name && p.roles.includes('Programming'))
+        .map(p => p.name)
+        .join('|');
+
+      const guitarists = track.performers
+        .filter(p => p.name && p.roles.includes('Guitar'))
+        .map(p => p.name)
+        .join('|');
+
+      // Performer Other - all other roles (exclude Vocalist, Programming, Guitar)
+      const performerOther = track.performers
+        .filter(p => p.name)
+        .flatMap(p => {
+          const otherRoles = p.roles.filter(role =>
+            role !== 'Vocalist' && role !== 'Programming' && role !== 'Guitar'
+          );
+          return otherRoles.map(role => `${p.name}|${role}`);
+        })
+        .join('||');
+
+      // Extract specific composition roles
+      const composers = track.composition
+        .filter(c => c.name && c.roles.includes('Composer'))
+        .map(c => c.name)
+        .join('|');
+
+      const lyricists = track.composition
+        .filter(c => c.name && c.roles.includes('Lyricist'))
+        .map(c => c.name)
+        .join('|');
+
+      const songwriters = track.composition
+        .filter(c => c.name && c.roles.includes('Songwriter'))
+        .map(c => c.name)
+        .join('|');
+
+      // Songwriter Other - all other roles (exclude Composer, Lyricist, Songwriter)
+      const songwriterOther = track.composition
+        .filter(c => c.name)
+        .flatMap(c => {
+          const otherRoles = c.roles.filter(role =>
+            role !== 'Composer' && role !== 'Lyricist' && role !== 'Songwriter'
+          );
+          return otherRoles.map(role => `${c.name}|${role}`);
+        })
+        .join('||');
+
+      // Extract specific production roles
+      const producers = track.production
+        .filter(p => p.name && p.roles.includes('Producer'))
+        .map(p => p.name)
+        .join('|');
+
+      const mixEngineers = track.production
+        .filter(p => p.name && p.roles.includes('Mixer'))
+        .map(p => p.name)
+        .join('|');
+
+      const masteringEngineers = track.production
+        .filter(p => p.name && p.roles.includes('Mastering Engineer'))
+        .map(p => p.name)
+        .join('|');
+
+      // PE Other - all other roles (exclude Producer, Mixer, Mastering Engineer)
+      const peOther = track.production
+        .filter(p => p.name)
+        .flatMap(p => {
+          const otherRoles = p.roles.filter(role =>
+            role !== 'Producer' && role !== 'Mixer' && role !== 'Mastering Engineer'
+          );
+          return otherRoles.map(role => `${p.name}|${role}`);
+        })
+        .join('||');
+
+      // Format explicit content
+      let explicitContent = 'N';
+      if (track.explicitContent === 'yes') explicitContent = 'Y';
+      else if (track.explicitContent === 'cleaned') explicitContent = 'Cleaned';
+
+      rows.push([
+        '1', // Disc Number
+        String(index + 1), // Track Number
+        'SINGLE', // Title Type
+        releaseData.catalogNumber || '', // Cat Number
+        releaseData.labelName, // Label Name
+        releaseData.upc || '', // UPC (barcode)
+        formatDate(releaseData.releaseDate || ''), // Release Date
+        formatDate(releaseData.originalReleaseDate || ''), // Original Release Date
+        allAlbumArtists, // Album Artist - with Spotify-promoted artists
+        releaseData.featuredArtists.filter(a => a.name && !a.makeSpotifyPrimary).map(a => a.name).join('|'), // Album Featured Artist - only non-promoted
+        albumOtherArtist, // Album Other Artist - only non-promoted remixers
+        releaseData.title, // Album Title
+        releaseData.mixVersion || '', // Album Mix Version
+        allTrackArtists, // Track Artist - with Spotify-promoted artists
+        track.featuredArtists.filter(a => a.name && !a.makeSpotifyPrimary).map(a => a.name).join('|'), // Track featured Artist - only non-promoted
+        vocalists, // Vocalist
+        programming, // Programming
+        guitarists, // Guitar
+        performerOther, // Performer Other
+        composers, // Composer
+        lyricists, // Lyricist
+        songwriters, // Songwriter
+        songwriterOther, // Songwriter Other
+        producers, // Producer
+        mixEngineers, // Mix Engineer
+        masteringEngineers, // Mastering Engineer
+        peOther, // PE Other
+        track.title, // Track Title
+        track.mixVersion || '', // Mix Version
+        track.remixers.filter(r => r.name && !r.makeSpotifyPrimary).map(r => r.name).join('|'), // Remixer - only non-promoted
+        track.isrcCode ? cleanISRC(track.isrcCode) : '', // ISRC code
+        track.secondaryIsrc ? cleanISRC(track.secondaryIsrc) : '', // Secondary ISRC code
+        track.language, // Language
+        '', // Duration - leave blank
+        getExportLabel(track.trackGenre), // Sub-Genre
+        track.publishers.join('|'), // Publisher
+        '', // Sample Start Time - leave blank
+        track.audioFile?.name || '', // Filename
+        explicitContent, // Explicit Content
+        'N', // Must Remain Bundled
+        releaseData.albumCLine, // ALBUM C LINE
+        releaseData.albumPLine, // ALBUM P LINE
+        territories.included, // Territory
+        territories.excluded, // Excluded Territory
+        getExportLabel(releaseData.albumGenre), // Album Genre
+        '', // Public Domain - leave blank
+        getExportLabel(track.trackGenre), // Genre
+        releaseData.featuredArtists.some(a => a.makeSpotifyPrimary) || track.featuredArtists.some(a => a.makeSpotifyPrimary) ? 'Y' : 'N', // Make Featured Artist Primary on Spotify
+        releaseData.remixers.some(r => r.makeSpotifyPrimary) || track.remixers.some(r => r.makeSpotifyPrimary) ? 'Y' : 'N', // Make Remixer Primary on Spotify
+        track.lyrics || '', // Lyrics
+        '' // Track Credits - leave blank
+      ]);
+    });
+
+    // Convert to CSV string
+    return rows.map(row =>
       row.map(cell => {
         // Escape quotes and wrap in quotes if contains comma, quote, or newline
         const escaped = String(cell).replace(/"/g, '""');
@@ -413,6 +668,12 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
       setExportProgress(10);
       const csvContent = generateCSV();
       zip.file('metadata.csv', csvContent);
+
+      // Add Spotify CSV if needed
+      if (needsSpotifyExport()) {
+        const spotifyCSVContent = generateSpotifyCSV();
+        zip.file('metadata_spotify.csv', spotifyCSVContent);
+      }
 
       // Generate and add Excel file
       setExportProgress(20);
@@ -577,8 +838,8 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
           row.getCell(46).value = '';
           row.getCell(47).value = '';
           row.getCell(48).value = getExportLabel(track.trackGenre);
-          row.getCell(49).value = 'N';
-          row.getCell(50).value = 'N';
+          row.getCell(49).value = releaseData.featuredArtists.some(a => a.makeSpotifyPrimary) || track.featuredArtists.some(a => a.makeSpotifyPrimary) ? 'Y' : 'N';
+          row.getCell(50).value = releaseData.remixers.some(r => r.makeSpotifyPrimary) || track.remixers.some(r => r.makeSpotifyPrimary) ? 'Y' : 'N';
           row.getCell(51).value = track.lyrics || '';
           row.getCell(52).value = '';
 
@@ -587,8 +848,192 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
 
         // Generate Excel buffer and add to ZIP
         const excelBuffer = await workbook.xlsx.writeBuffer();
-        const releaseTitle = releaseData.title.replace(/[^a-z0-9]/gi, '_');
-        zip.file(`${releaseTitle}_metadata.xlsx`, excelBuffer);
+        zip.file('metadata.xlsx', excelBuffer);
+
+        // Generate Spotify Excel if needed
+        if (needsSpotifyExport()) {
+          // Load template again for Spotify version
+          const spotifyWorkbook = new ExcelJS.Workbook();
+          await spotifyWorkbook.xlsx.load(templateBuffer);
+          const spotifyWorksheet = spotifyWorkbook.getWorksheet('Data');
+
+          if (spotifyWorksheet) {
+            // Album Artist - with Spotify-promoted artists
+            const albumArtists = releaseData.artists.filter(a => a);
+            const spotifyFeaturedArtists = releaseData.featuredArtists
+              .filter(a => a.name && a.makeSpotifyPrimary)
+              .map(a => a.name);
+            const spotifyRemixers = releaseData.remixers
+              .filter(r => r.name && r.makeSpotifyPrimary)
+              .map(r => r.name);
+            const allAlbumArtists = [...albumArtists, ...spotifyFeaturedArtists, ...spotifyRemixers].join('|');
+
+            // Album Other Artist - only non-promoted remixers
+            const spotifyAlbumOtherArtist = releaseData.remixers
+              .filter(r => r.name && !r.makeSpotifyPrimary)
+              .map(r => `${r.name}|Remixer`)
+              .join('||');
+
+            // Populate data starting from row 4
+            tracks.forEach((track, index) => {
+              const rowNumber = 4 + index;
+              const row = spotifyWorksheet.getRow(rowNumber);
+
+              // Track Artist - with Spotify-promoted artists
+              const trackArtists = track.artists.filter(a => a);
+              const trackSpotifyFeaturedArtists = track.featuredArtists
+                .filter(a => a.name && a.makeSpotifyPrimary)
+                .map(a => a.name);
+              const trackSpotifyRemixers = track.remixers
+                .filter(r => r.name && r.makeSpotifyPrimary)
+                .map(r => r.name);
+              const allTrackArtists = [...trackArtists, ...trackSpotifyFeaturedArtists, ...trackSpotifyRemixers].join('|');
+
+              // Extract performer roles
+              const vocalists = track.performers
+                .filter(p => p.name && p.roles.includes('Vocalist'))
+                .map(p => p.name)
+                .join('|');
+
+              const programming = track.performers
+                .filter(p => p.name && p.roles.includes('Programming'))
+                .map(p => p.name)
+                .join('|');
+
+              const guitarists = track.performers
+                .filter(p => p.name && p.roles.includes('Guitar'))
+                .map(p => p.name)
+                .join('|');
+
+              const performerOther = track.performers
+                .filter(p => p.name)
+                .flatMap(p => {
+                  const otherRoles = p.roles.filter(role =>
+                    role !== 'Vocalist' && role !== 'Programming' && role !== 'Guitar'
+                  );
+                  return otherRoles.map(role => `${p.name}|${role}`);
+                })
+                .join('||');
+
+              // Extract composition roles
+              const composers = track.composition
+                .filter(c => c.name && c.roles.includes('Composer'))
+                .map(c => c.name)
+                .join('|');
+
+              const lyricists = track.composition
+                .filter(c => c.name && c.roles.includes('Lyricist'))
+                .map(c => c.name)
+                .join('|');
+
+              const songwriters = track.composition
+                .filter(c => c.name && c.roles.includes('Songwriter'))
+                .map(c => c.name)
+                .join('|');
+
+              const songwriterOther = track.composition
+                .filter(c => c.name)
+                .flatMap(c => {
+                  const otherRoles = c.roles.filter(role =>
+                    role !== 'Composer' && role !== 'Lyricist' && role !== 'Songwriter'
+                  );
+                  return otherRoles.map(role => `${c.name}|${role}`);
+                })
+                .join('||');
+
+              // Extract production roles
+              const producers = track.production
+                .filter(p => p.name && p.roles.includes('Producer'))
+                .map(p => p.name)
+                .join('|');
+
+              const mixEngineers = track.production
+                .filter(p => p.name && p.roles.includes('Mixer'))
+                .map(p => p.name)
+                .join('|');
+
+              const masteringEngineers = track.production
+                .filter(p => p.name && p.roles.includes('Mastering Engineer'))
+                .map(p => p.name)
+                .join('|');
+
+              const peOther = track.production
+                .filter(p => p.name)
+                .flatMap(p => {
+                  const otherRoles = p.roles.filter(role =>
+                    role !== 'Producer' && role !== 'Mixer' && role !== 'Mastering Engineer'
+                  );
+                  return otherRoles.map(role => `${p.name}|${role}`);
+                })
+                .join('||');
+
+              // Format explicit content
+              let explicitContent = 'N';
+              if (track.explicitContent === 'yes') explicitContent = 'Y';
+              else if (track.explicitContent === 'cleaned') explicitContent = 'Cleaned';
+
+              // Set cell values with Spotify-specific artist data
+              row.getCell(1).value = 1;
+              row.getCell(2).value = index + 1;
+              row.getCell(3).value = 'SINGLE';
+              row.getCell(4).value = releaseData.catalogNumber || '';
+              row.getCell(5).value = releaseData.labelName;
+              row.getCell(6).value = releaseData.upc || '';
+              row.getCell(7).value = formatDate(releaseData.releaseDate || '');
+              row.getCell(8).value = formatDate(releaseData.originalReleaseDate || '');
+              row.getCell(9).value = allAlbumArtists; // Modified for Spotify
+              row.getCell(10).value = releaseData.featuredArtists.filter(a => a.name && !a.makeSpotifyPrimary).map(a => a.name).join('|'); // Only non-promoted
+              row.getCell(11).value = spotifyAlbumOtherArtist; // Only non-promoted remixers
+              row.getCell(12).value = releaseData.title;
+              row.getCell(13).value = releaseData.mixVersion || '';
+              row.getCell(14).value = allTrackArtists; // Modified for Spotify
+              row.getCell(15).value = track.featuredArtists.filter(a => a.name && !a.makeSpotifyPrimary).map(a => a.name).join('|'); // Only non-promoted
+              row.getCell(16).value = vocalists;
+              row.getCell(17).value = programming;
+              row.getCell(18).value = guitarists;
+              row.getCell(19).value = performerOther;
+              row.getCell(20).value = composers;
+              row.getCell(21).value = lyricists;
+              row.getCell(22).value = songwriters;
+              row.getCell(23).value = songwriterOther;
+              row.getCell(24).value = producers;
+              row.getCell(25).value = mixEngineers;
+              row.getCell(26).value = masteringEngineers;
+              row.getCell(27).value = peOther;
+              row.getCell(28).value = track.title;
+              row.getCell(29).value = track.mixVersion || '';
+              row.getCell(30).value = track.remixers.filter(r => r.name && !r.makeSpotifyPrimary).map(r => r.name).join('|'); // Only non-promoted
+              row.getCell(31).value = track.isrcCode ? cleanISRC(track.isrcCode) : '';
+              row.getCell(32).value = track.secondaryIsrc ? cleanISRC(track.secondaryIsrc) : '';
+              row.getCell(33).value = track.language;
+              row.getCell(34).value = '';
+              row.getCell(35).value = getExportLabel(track.trackGenre);
+              row.getCell(36).value = track.publishers.join('|');
+              row.getCell(37).value = '';
+              row.getCell(38).value = track.audioFile?.name || '';
+              row.getCell(39).value = explicitContent;
+              row.getCell(40).value = 'N';
+              row.getCell(41).value = releaseData.albumCLine;
+              row.getCell(42).value = releaseData.albumPLine;
+              row.getCell(43).value = territories.included;
+              row.getCell(44).value = territories.excluded;
+              row.getCell(45).value = getExportLabel(releaseData.albumGenre);
+              row.getCell(46).value = '';
+              row.getCell(47).value = '';
+              row.getCell(48).value = getExportLabel(track.trackGenre);
+              row.getCell(49).value = releaseData.featuredArtists.some(a => a.makeSpotifyPrimary) || track.featuredArtists.some(a => a.makeSpotifyPrimary) ? 'Y' : 'N';
+              row.getCell(50).value = releaseData.remixers.some(r => r.makeSpotifyPrimary) || track.remixers.some(r => r.makeSpotifyPrimary) ? 'Y' : 'N';
+              row.getCell(51).value = track.lyrics || '';
+              row.getCell(52).value = '';
+
+              row.commit();
+            });
+
+            // Generate Spotify Excel buffer and add to ZIP
+            const spotifyExcelBuffer = await spotifyWorkbook.xlsx.writeBuffer();
+            zip.file('metadata_spotify.xlsx', spotifyExcelBuffer);
+          }
+        }
       } catch (error) {
         console.error('Error creating Excel file:', error);
         // Continue with ZIP creation even if Excel fails

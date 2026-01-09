@@ -27,7 +27,8 @@
       "Bash(git add:*)",
       "mcp__ide__getDiagnostics",
       "Bash(git commit:*)",
-      "Bash([ -f .planning/track-duplication-ui-reorganization-SUMMARY.md ])"
+      "Bash([ -f .planning/track-duplication-ui-reorganization-SUMMARY.md ])",
+      "Bash(kill:*)"
     ],
     "deny": [],
     "ask": []

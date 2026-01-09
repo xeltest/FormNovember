@@ -81,7 +81,7 @@ const TerritoryPanel: React.FC<TerritoryPanelProps> = ({
         </div>
       </ScrollArea>
 
-      {/* Footer - only for excluded panel */}
+      {/* Footer - only for excluded panel 
       {side === 'excluded' && (
         <div className="p-3 border-t bg-muted/30">
           <a
@@ -93,7 +93,7 @@ const TerritoryPanel: React.FC<TerritoryPanelProps> = ({
             Why exclude territories?
           </a>
         </div>
-      )}
+      )}*/}
     </div>
   );
 };

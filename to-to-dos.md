@@ -3,3 +3,4 @@
 
 Additionally, remove the two buttons up the top, "add Blank Track" and "Duplicate a Track". Make the existing "Add a blank Track" as just "Add New Track" and put it to the bottom of that section.
 3) Could we make it so the user HAS to click Download Zip and for it to successfully zip before they are able to click next on the to the final page (step 4 SEND) if that makes sense?
+4) Remove the weird helper text in UPC
