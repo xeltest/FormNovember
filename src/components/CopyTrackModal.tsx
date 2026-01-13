@@ -40,13 +40,13 @@ const CopyTrackModal = ({ tracks, onCopy, getTrackDisplayTitle, excludeIndex, op
             className="flex items-center"
           >
             <Copy className="w-4 h-4 mr-2" />
-            Duplicate Track
+            Copy Track Metadata
           </Button>
         </DialogTrigger>
       )}
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Choose Track To Duplicate</DialogTitle>
+          <DialogTitle>Copy Track Metadata From</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {tracks.map((track, index) => {

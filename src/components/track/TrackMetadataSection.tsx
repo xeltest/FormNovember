@@ -107,7 +107,7 @@ const TrackMetadataSection = ({
               className="text-xs"
             >
               <Files className="w-3 h-3 mr-1" />
-              Duplicate Track
+              Copy Track Metadata
             </Button>
           </div>
         </div>

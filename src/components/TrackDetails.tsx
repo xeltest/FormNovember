@@ -37,16 +37,19 @@ const TrackDetails = ({ tracks, onChange, releaseData, showValidation }: TrackDe
     setExpandedTrack(tracks.length);
   };
 
-  const copyFromTrack = (sourceIndex: number) => {
+  const copyFromTrack = (sourceIndex: number, targetIndex: number) => {
     const sourceTrack = tracks[sourceIndex];
-    const newTrack: TrackData = {
+    const targetTrack = tracks[targetIndex];
+
+    // Copy all metadata EXCEPT audio file and ISRC codes
+    const updatedTrack: TrackData = {
       ...sourceTrack,
-      audioFile: undefined,
-      isrcCode: undefined,
-      secondaryIsrc: undefined
+      audioFile: targetTrack.audioFile, // Keep the current track's audio file
+      isrcCode: targetTrack.isrcCode, // Keep the current track's ISRC
+      secondaryIsrc: targetTrack.secondaryIsrc // Keep the current track's secondary ISRC
     };
-    onChange([...tracks, newTrack]);
-    setExpandedTrack(tracks.length);
+
+    updateTrack(targetIndex, updatedTrack);
   };
 
   const removeTrack = (index: number) => {
@@ -162,7 +165,7 @@ const TrackDetails = ({ tracks, onChange, releaseData, showValidation }: TrackDe
             onUpdateTrack={(updatedTrack) => updateTrack(index, updatedTrack)}
             onRemoveTrack={() => removeTrack(index)}
             onPrefillFromRelease={() => prefillFromRelease(index)}
-            onCopyFromTrack={copyFromTrack}
+            onCopyFromTrack={(sourceIndex) => copyFromTrack(sourceIndex, index)}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
