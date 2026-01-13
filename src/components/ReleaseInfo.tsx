@@ -10,6 +10,7 @@ import { ReleaseData, TrackData } from '@/pages/Index';
 import { GenreSelector } from '@/components/GenreSelector';
 import ImportFromZip from '@/components/ImportFromZip';
 import { areAssetsMandatory, validateUPC, validateCatalogNumber, validateCopyrightLine } from '@/lib/assetValidation';
+import { validateImageFile } from '@/lib/fileValidation';
 import { FieldTooltip } from '@/components/ui/FieldTooltip';
 import TerritorySelector from '@/components/territory/TerritorySelector';
 import { useToast } from '@/components/ui/use-toast';
@@ -123,9 +124,21 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
   };
 
 
-  const handleFileUpload = (file: File) => {
+  const handleFileUpload = async (file: File) => {
+    // Validate image file
+    const validation = await validateImageFile(file);
+
+    if (!validation.isValid) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Artwork",
+        description: validation.errorMessage,
+      });
+      return;
+    }
+
     updateData({ artwork: file });
-    
+
     // Create preview URL
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -134,12 +147,12 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
     reader.readAsDataURL(file);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith('image/')) {
-      handleFileUpload(file);
+      await handleFileUpload(file);
     }
   };
 
@@ -463,7 +476,7 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
                 <p className="text-sm text-foreground">
                   {data.artwork ? data.artwork.name : 'Click to upload or drag and drop'}
                 </p>
-                <p className="text-xs text-muted-foreground">RGB JPG Format 3000 x 3000 pixels</p>
+                <p className="text-xs text-muted-foreground">JPG, JPEG, or PNG - Square format - Minimum 3000x3000 pixels</p>
                 {showValidation && areAssetsMandatory() && !data.artwork && (
                   <p className="text-xs text-orange-600 dark:text-orange-400 mt-2 font-medium">
                     Artwork is required to proceed
@@ -472,7 +485,7 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
                 <input
                   id="artwork-upload"
                   type="file"
-                  accept="image/*"
+                  accept=".jpg,.jpeg,.png"
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
@@ -581,7 +594,7 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
               value={data.albumCLine}
               onChange={(e) => updateData({ albumCLine: e.target.value })}
               onBlur={handleCLineBlur}
-              placeholder="2025 Example Records"
+              placeholder="2026 Example Records"
             />
           </div>
           <div>
@@ -596,7 +609,7 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
               value={data.albumPLine}
               onChange={(e) => updateData({ albumPLine: e.target.value })}
               onBlur={handlePLineBlur}
-              placeholder="2025 Example Records"
+              placeholder="2026 Example Records"
             />
           </div>
         </CardContent>

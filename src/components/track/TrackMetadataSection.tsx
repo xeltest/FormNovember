@@ -7,8 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, X, Upload, AlertCircle, Files } from 'lucide-react';
 import { TrackData } from '@/pages/Index';
 import { areAssetsMandatory } from '@/lib/assetValidation';
+import { validateAudioFile } from '@/lib/fileValidation';
 import { FieldTooltip } from '@/components/ui/FieldTooltip';
 import CopyTrackModal from '@/components/CopyTrackModal';
+import { useToast } from '@/components/ui/use-toast';
 
 interface TrackMetadataSectionProps {
   track: TrackData;
@@ -34,6 +36,7 @@ const TrackMetadataSection = ({
   const [showMixVersion, setShowMixVersion] = useState(!!track.mixVersion);
   const [dragActive, setDragActive] = useState(false);
   const [copyModalOpen, setCopyModalOpen] = useState(false);
+  const { toast } = useToast();
 
   // Auto-expand mix/version section when data is populated (e.g., from "Copy from Release Info")
   useEffect(() => {
@@ -43,6 +46,18 @@ const TrackMetadataSection = ({
   }, [track.mixVersion]);
 
   const handleFileUpload = (file: File) => {
+    // Validate audio file
+    const validation = validateAudioFile(file);
+
+    if (!validation.isValid) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Audio File",
+        description: validation.errorMessage,
+      });
+      return;
+    }
+
     onChange({ audioFile: file });
   };
 
@@ -188,7 +203,7 @@ const TrackMetadataSection = ({
             <input
               id="audio-upload"
               type="file"
-              accept="audio/*"
+              accept=".wav"
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];
