@@ -4,3 +4,8 @@
 Additionally, remove the two buttons up the top, "add Blank Track" and "Duplicate a Track". Make the existing "Add a blank Track" as just "Add New Track" and put it to the bottom of that section.
 3) Could we make it so the user HAS to click Download Zip and for it to successfully zip before they are able to click next on the to the final page (step 4 SEND) if that makes sense?
 4) Remove the weird helper text in UPC
+
+5) Weird Bug IN the duplicate Track button where it creates a duplicate, doesnt duplicate a brand new track.
+6) Flag if Single or Ep/Album. If Single, Copy release info to the track.
+
+7) Add Some validation so same titled tracks cant be released without variations to title

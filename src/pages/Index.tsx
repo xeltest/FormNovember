@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, ChevronLeft, Music, Upload, Download, Mail, AlertCircle } from 'lucide-react';
@@ -9,6 +9,9 @@ import TrackDetails from '@/components/TrackDetails';
 import ExportStep from '@/components/ExportStep';
 import { validateAllAssets, getAssetValidationMessage, getDetailedValidationMessage, areAssetsMandatory } from '@/lib/assetValidation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useFormPersistence } from '@/hooks/useFormPersistence';
+import { serializeReleaseData, deserializeReleaseData, serializeTracks, deserializeTracks } from '@/lib/formPersistence';
+import { useToast } from '@/hooks/use-toast';
 
 export interface ReleaseData {
   title: string;
@@ -52,10 +55,17 @@ export interface TrackData {
 }
 
 const Index = () => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const { toast } = useToast();
+
+  const [currentStep, setCurrentStep, clearStepStorage] = useFormPersistence(
+    'xelon-form-step',
+    1
+  );
   const [attemptedProceed, setAttemptedProceed] = useState(false);
   const [exportComplete, setExportComplete] = useState(false);
-  const [releaseData, setReleaseData] = useState<ReleaseData>({
+  const [releaseData, setReleaseData, clearReleaseStorage] = useFormPersistence<ReleaseData>(
+    'xelon-form-release',
+    {
     title: '',
     artists: [''],
     featuredArtists: [],
@@ -68,9 +78,16 @@ const Index = () => {
     albumPLine: '',
     isWorldwide: true,
     territories: []
-  });
+  },
+  {
+    serialize: serializeReleaseData,
+    deserialize: deserializeReleaseData,
+  }
+  );
 
-  const [tracks, setTracks] = useState<TrackData[]>([{
+  const [tracks, setTracks, clearTracksStorage] = useFormPersistence<TrackData[]>(
+    'xelon-form-tracks',
+    [{
     title: '',
     artists: [''],
     featuredArtists: [],
@@ -83,7 +100,12 @@ const Index = () => {
     dolbyAtmos: false,
     language: 'English',
     explicitContent: 'no'
-  }]);
+  }],
+  {
+    serialize: serializeTracks,
+    deserialize: deserializeTracks,
+  }
+  );
 
   const steps = [
     { number: 1, title: 'Release Info', icon: Music },
@@ -91,6 +113,30 @@ const Index = () => {
     { number: 3, title: 'Export', icon: Download },
     { number: 4, title: 'Send to Xelon', icon: Mail }
   ];
+
+  // Clear storage when reaching Step 4 (Send to Xelon)
+  useEffect(() => {
+    if (currentStep === 4) {
+      clearStepStorage();
+      clearReleaseStorage();
+      clearTracksStorage();
+    }
+  }, [currentStep, clearStepStorage, clearReleaseStorage, clearTracksStorage]);
+
+  // Show notification when data is restored
+  useEffect(() => {
+    const hasRestoredData = sessionStorage.getItem('xelon-form-release');
+    const notified = sessionStorage.getItem('xelon-form-notified');
+
+    if (hasRestoredData && !notified) {
+      toast({
+        title: "Form data restored",
+        description: "Your previous session was recovered. Please re-upload artwork and audio files.",
+        duration: 5000,
+      });
+      sessionStorage.setItem('xelon-form-notified', 'true');
+    }
+  }, [toast]);
 
   const validateStep = (step: number): boolean => {
     if (step === 1) {

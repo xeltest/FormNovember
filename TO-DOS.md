@@ -2,13 +2,7 @@
 
 ## Pending Tasks
 
-### Spotify-Specific Artist Export - 2026-01-08 00:58
 
-- **Add "Make Primary on Spotify" toggle for featured artists and remixers** - Add checkbox/toggle at release and track level that appears when featured artist or remixer is added/expanded. **Problem:** Spotify requires different artist attribution than other platforms - featured artists and remixers sometimes need to be listed as primary artists for proper credit and royalty distribution on Spotify specifically. **Files:** `src/components/ReleaseInfo.tsx`, `src/components/track/TrackArtistsSection.tsx`, `src/pages/Index.tsx`. **Solution:** Add boolean field "makeSpotifyPrimary" or similar to featured artist and remixer data structures. Display toggle when these artists are added with label "Make Primary on Spotify" or "Show as Primary Artist on Spotify".
-
-- **Generate Spotify-specific export files with modified artist data** - Create duplicate CSV and Excel files with "_spotify" suffix when Spotify toggle is enabled. **Problem:** Need to export two sets of metadata files - standard files for most platforms and Spotify-specific files where selected featured artists/remixers are promoted to primary artist status by appending them to the primary artists list. **Files:** `src/components/ExportStep.tsx`. **Solution:** When exporting, check if any tracks/release have makeSpotifyPrimary enabled. If yes, generate standard files (metadata.csv, metadata.xlsx) plus Spotify variants (metadata_spotify.csv, metadata_spotify.xlsx) where the featured artist/remixer with flag enabled is appended to the primary artists array. Final export ZIP contains: artwork, audio files, 2 CSVs, and 2 Excel files.
-
----
 
 ## Completed Tasks
 
@@ -78,3 +72,14 @@
 - **Remove top-level track action buttons** - Remove the two buttons at the top: "add Blank Track" and "Duplicate a Track". **Problem:** These top-level buttons create redundant UI now that functionality is being reorganized - add blank track should be at the bottom as a natural continuation point, and duplicate is moving to per-track buttons. **Files:** `src/pages/Index.tsx`. **Solution:** Remove both button components from the top section of the tracks area.
 
 - **Relocate and rename Add Track button** - Move the "Add a blank Track" button to the bottom of the tracks section and rename it to "Add New Track". **Problem:** Having the add track button at the top feels backwards - users naturally expect to add a new track after scrolling through existing tracks, and "Add New Track" is clearer terminology than "Add a blank Track". **Files:** `src/pages/Index.tsx`. **Solution:** Move button component to render after all existing tracks and update button text from "Add a blank Track" to "Add New Track".
+
+### Spotify-Specific Artist Export - 2026-01-08 00:58
+
+- **Add "Make Primary on Spotify" toggle for featured artists and remixers** - Add checkbox/toggle at release and track level that appears when featured artist or remixer is added/expanded. **Problem:** Spotify requires different artist attribution than other platforms - featured artists and remixers sometimes need to be listed as primary artists for proper credit and royalty distribution on Spotify specifically. **Files:** `src/components/ReleaseInfo.tsx`, `src/components/track/TrackArtistsSection.tsx`, `src/pages/Index.tsx`. **Solution:** Add boolean field "makeSpotifyPrimary" or similar to featured artist and remixer data structures. Display toggle when these artists are added with label "Make Primary on Spotify" or "Show as Primary Artist on Spotify".
+
+- **Generate Spotify-specific export files with modified artist data** - Create duplicate CSV and Excel files with "_spotify" suffix when Spotify toggle is enabled. **Problem:** Need to export two sets of metadata files - standard files for most platforms and Spotify-specific files where selected featured artists/remixers are promoted to primary artist status by appending them to the primary artists list. **Files:** `src/components/ExportStep.tsx`. **Solution:** When exporting, check if any tracks/release have makeSpotifyPrimary enabled. If yes, generate standard files (metadata.csv, metadata.xlsx) plus Spotify variants (metadata_spotify.csv, metadata_spotify.xlsx) where the featured artist/remixer with flag enabled is appended to the primary artists array. Final export ZIP contains: artwork, audio files, 2 CSVs, and 2 Excel files.
+
+---
+### Fix Duplicate Track Button Behavior - 2026-01-14 01:09
+
+- **Change Duplicate Track button to copy metadata TO current track instead of creating new track** - Modify the "Duplicate Track" button functionality to copy track metadata FROM a selected track TO the current track, similar to how "Copy From Release Info" works. **Problem:** Currently when clicking "Duplicate Track" button, it creates a NEW track using the selected track as a template. The desired behavior is to populate the CURRENT track's fields with metadata from another existing track, not create a new track. Should work like "Copy From Release Info" but for track-to-track copying. **Files:** `src/components/CopyTrackModal.tsx`, `src/components/TrackForm.tsx`, `src/pages/Index.tsx`. **Solution:** Modify the modal and its handler to copy metadata from the selected source track into the current track's form fields instead of calling the "add new track" functionality with copied data.

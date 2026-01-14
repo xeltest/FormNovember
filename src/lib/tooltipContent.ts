@@ -106,7 +106,7 @@ trackRemixer: 'Artist who remixed the track. Leave blank for original versions. 
 
 performers: 'Musicians who performed on the recording (e.g., "Vocalist", "Guitarist", "Pianist"). Type their name and assign their role(s). (For DJ/Producers, select "Programming")',
 
-composition: 'Those who wrote the lyrics and music. (e.g., "Composer", "Lyricist", or "Songwriter"). Type their name and assign their role(s).',
+composition: 'FIRST and LAST NAME of those who wrote the lyrics and music. (e.g., "Composer", "Lyricist", or "Songwriter"). Type their name and assign their role(s).',
 
 production: 'Production/engineering team (e.g., "Producer", "Mixer", "Mastering Engineer"). Type their name and assign their role(s)',
 
