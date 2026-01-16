@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { X, ChevronRight } from 'lucide-react';
-import { GENRES, GenreNode, findGenreByLabel } from '@/constants/genres';
+import { Input } from '@/components/ui/input';
+import { X, ChevronRight, Search } from 'lucide-react';
+import { GENRES, GenreNode, findGenreByLabel, flattenGenres } from '@/constants/genres';
 import { FieldTooltip } from '@/components/ui/FieldTooltip';
+import { cn } from '@/lib/utils';
 
 interface GenreSelectorProps {
   value: string;
@@ -14,6 +16,33 @@ interface GenreSelectorProps {
   id?: string;
   showTooltip?: boolean;
 }
+
+// Flatten genres once at module level for better performance
+const allFlattenedGenres = flattenGenres(GENRES);
+
+// Helper to highlight matching text
+const HighlightedText: React.FC<{ text: string; highlight: string }> = ({ text, highlight }) => {
+  if (!highlight.trim()) {
+    return <span>{text}</span>;
+  }
+
+  const regex = new RegExp(`(${highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  const parts = text.split(regex);
+
+  return (
+    <span>
+      {parts.map((part, index) =>
+        regex.test(part) ? (
+          <span key={index} className="bg-yellow-200 dark:bg-yellow-800 font-medium">
+            {part}
+          </span>
+        ) : (
+          <span key={index}>{part}</span>
+        )
+      )}
+    </span>
+  );
+};
 
 export const GenreSelector: React.FC<GenreSelectorProps> = ({
   value,
@@ -30,6 +59,136 @@ export const GenreSelector: React.FC<GenreSelectorProps> = ({
   const [level2Options, setLevel2Options] = useState<GenreNode[]>([]);
   const [level3Options, setLevel3Options] = useState<GenreNode[]>([]);
   const [displayPath, setDisplayPath] = useState<string>('');
+
+  // Search state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [selectedResultIndex, setSelectedResultIndex] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Filter genres based on search term
+  const searchResults = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return [];
+    }
+
+    const term = searchTerm.toLowerCase();
+    return allFlattenedGenres
+      .filter((genre) => genre.label.toLowerCase().includes(term))
+      .slice(0, 20); // Limit results for performance
+  }, [searchTerm]);
+
+  // Reset selected index when search results change
+  useEffect(() => {
+    setSelectedResultIndex(0);
+  }, [searchResults]);
+
+  // Handle clicking outside to close search results
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Handle keyboard navigation in search results
+  const handleSearchKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (!showSearchResults || searchResults.length === 0) return;
+
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setSelectedResultIndex((prev) =>
+            prev < searchResults.length - 1 ? prev + 1 : prev
+          );
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setSelectedResultIndex((prev) => (prev > 0 ? prev - 1 : prev));
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (searchResults[selectedResultIndex]) {
+            handleSearchResultSelect(searchResults[selectedResultIndex]);
+          }
+          break;
+        case 'Escape':
+          e.preventDefault();
+          setShowSearchResults(false);
+          setSearchTerm('');
+          break;
+      }
+    },
+    [showSearchResults, searchResults, selectedResultIndex]
+  );
+
+  // Handle search result selection
+  const handleSearchResultSelect = (result: {
+    id: string;
+    label: string;
+    path: string[];
+    fullPath: string;
+  }) => {
+    // Find the genre to populate the hierarchical selectors
+    const genreResult = findGenreByLabel(result.label);
+
+    if (genreResult) {
+      const selections = genreResult.parentSelections;
+
+      // Reset all levels first
+      setLevel2Options([]);
+      setLevel3Options([]);
+      setLevel2Selection('');
+      setLevel3Selection('');
+
+      // Set selections based on hierarchy depth
+      if (selections.length >= 1) {
+        const level1 = selections[0];
+        setLevel1Selection(level1.id);
+
+        const level1Genre = GENRES.find((g) => g.id === level1.id);
+        if (level1Genre?.children) {
+          setLevel2Options(level1Genre.children);
+        }
+
+        if (selections.length >= 2) {
+          const level2 = selections[1];
+          setLevel2Selection(level2.id);
+
+          const level2Genre = level1Genre?.children?.find((g) => g.id === level2.id);
+          if (level2Genre?.children) {
+            setLevel3Options(level2Genre.children);
+          }
+
+          if (selections.length >= 3) {
+            const level3 = selections[2];
+            setLevel3Selection(level3.id);
+          }
+        }
+      }
+
+      // Set display path
+      setDisplayPath(result.path.join(' > '));
+    }
+
+    // Clear search and close dropdown
+    setSearchTerm('');
+    setShowSearchResults(false);
+
+    // Call onValueChange with the genre label
+    onValueChange(result.label);
+  };
 
   // Parse the current value and set selections
   useEffect(() => {
@@ -174,6 +333,73 @@ export const GenreSelector: React.FC<GenreSelectorProps> = ({
           required={label.includes('*')}
         />
       )}
+
+      {/* Search Input */}
+      <div ref={searchContainerRef} className="relative">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search genres..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setShowSearchResults(true);
+            }}
+            onFocus={() => {
+              if (searchTerm.trim()) {
+                setShowSearchResults(true);
+              }
+            }}
+            onKeyDown={handleSearchKeyDown}
+            className="pl-10"
+          />
+        </div>
+
+        {/* Search Results Dropdown */}
+        {showSearchResults && searchTerm.trim() && (
+          <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-[300px] overflow-y-auto">
+            {searchResults.length === 0 ? (
+              <div className="py-4 px-3 text-center text-sm text-muted-foreground">
+                No matching genres
+              </div>
+            ) : (
+              <div className="py-1">
+                {searchResults.map((result, index) => (
+                  <div
+                    key={`${result.id}-${result.fullPath}`}
+                    className={cn(
+                      'px-3 py-2 cursor-pointer transition-colors',
+                      index === selectedResultIndex
+                        ? 'bg-accent text-accent-foreground'
+                        : 'hover:bg-accent/50'
+                    )}
+                    onClick={() => handleSearchResultSelect(result)}
+                    onMouseEnter={() => setSelectedResultIndex(index)}
+                  >
+                    <div className="font-medium">
+                      <HighlightedText text={result.label} highlight={searchTerm} />
+                    </div>
+                    {result.path.length > 1 && (
+                      <div className="text-xs text-muted-foreground mt-0.5 flex items-center flex-wrap gap-0.5">
+                        {result.path.map((part, pathIndex) => (
+                          <React.Fragment key={pathIndex}>
+                            <span>{part}</span>
+                            {pathIndex < result.path.length - 1 && (
+                              <ChevronRight className="h-3 w-3 inline-block" />
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Current selection breadcrumb - shows full path for context */}
       {displayPath && (
