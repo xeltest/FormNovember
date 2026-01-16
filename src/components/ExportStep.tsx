@@ -38,6 +38,32 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
   const [exportProgress, setExportProgress] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  // Helper function to generate the export filename for a track
+  // This ensures consistency between the filename in metadata and the actual ZIP file
+  const getExportFilename = (track: TrackData, index: number): string => {
+    if (!track.audioFile) return '';
+    const trackNumber = String(index + 1).padStart(2, '0');
+    const sanitizedTitle = track.title.replace(/[^a-z0-9]/gi, '_');
+    const extension = track.audioFile.name.split('.').pop();
+    return `${trackNumber}_${sanitizedTitle}.${extension}`;
+  };
+
+  const getExportTitleType = (): string => {
+    const trackCount = tracks.length;
+
+    switch (releaseData.releaseType) {
+      case 'single':
+        return 'Single';
+      case 'album':
+        return 'Album';
+      case 'ep':
+        // EP: ≤3 tracks = Single, ≥4 tracks = Album
+        return trackCount <= 3 ? 'Single' : 'Album';
+      default:
+        return 'Single'; // fallback
+    }
+  };
+
   const validateData = () => {
     const issues = [];
 
@@ -132,15 +158,12 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
   const buildPitchFormUrl = () => {
     const baseUrl = "https://airtable.com/appncstxdoakDSeBs/pagq9v5PHhRqVqB9N/form";
 
-    // Calculate release type based on track count
+    // Use user-selected release type for pitch form
     let releaseType = "Single";
-    const trackCount = tracks.length;
-    if (trackCount === 2) {
-      releaseType = "Double Single";
-    } else if (trackCount >= 3 && trackCount <= 7) {
-      releaseType = "EP";
-    } else if (trackCount >= 8) {
+    if (releaseData.releaseType === 'album') {
       releaseType = "Album";
+    } else if (releaseData.releaseType === 'ep') {
+      releaseType = "EP";
     }
 
     // Build release title with mix version if present
@@ -350,7 +373,7 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
       rows.push([
         '1', // Disc Number
         String(index + 1), // Track Number
-        'SINGLE', // Title Type
+        getExportTitleType(), // Title Type
         releaseData.catalogNumber || '', // Cat Number
         releaseData.labelName, // Label Name
         releaseData.upc || '', // UPC (barcode)
@@ -385,7 +408,7 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
         getExportLabel(track.trackGenre), // Sub-Genre
         track.publishers.join('|'), // Publisher
         '', // Sample Start Time - leave blank
-        track.audioFile?.name || '', // Filename
+        getExportFilename(track, index), // Filename - matches the renamed file in ZIP
         explicitContent, // Explicit Content
         'N', // Must Remain Bundled
         releaseData.albumCLine, // ALBUM C LINE
@@ -589,7 +612,7 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
       rows.push([
         '1', // Disc Number
         String(index + 1), // Track Number
-        'SINGLE', // Title Type
+        getExportTitleType(), // Title Type
         releaseData.catalogNumber || '', // Cat Number
         releaseData.labelName, // Label Name
         releaseData.upc || '', // UPC (barcode)
@@ -624,7 +647,7 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
         getExportLabel(track.trackGenre), // Sub-Genre
         track.publishers.join('|'), // Publisher
         '', // Sample Start Time - leave blank
-        track.audioFile?.name || '', // Filename
+        getExportFilename(track, index), // Filename - matches the renamed file in ZIP
         explicitContent, // Explicit Content
         'N', // Must Remain Bundled
         releaseData.albumCLine, // ALBUM C LINE
@@ -792,7 +815,7 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
           // Set cell values
           row.getCell(1).value = 1;
           row.getCell(2).value = index + 1;
-          row.getCell(3).value = 'SINGLE';
+          row.getCell(3).value = getExportTitleType();
           row.getCell(4).value = releaseData.catalogNumber || '';
           row.getCell(5).value = releaseData.labelName;
           row.getCell(6).value = releaseData.upc || '';
@@ -827,7 +850,7 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
           row.getCell(35).value = getExportLabel(track.trackGenre);
           row.getCell(36).value = track.publishers.join('|');
           row.getCell(37).value = '';
-          row.getCell(38).value = track.audioFile?.name || '';
+          row.getCell(38).value = getExportFilename(track, index);
           row.getCell(39).value = explicitContent;
           row.getCell(40).value = 'N';
           row.getCell(41).value = releaseData.albumCLine;
@@ -975,7 +998,7 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
               // Set cell values with Spotify-specific artist data
               row.getCell(1).value = 1;
               row.getCell(2).value = index + 1;
-              row.getCell(3).value = 'SINGLE';
+              row.getCell(3).value = getExportTitleType();
               row.getCell(4).value = releaseData.catalogNumber || '';
               row.getCell(5).value = releaseData.labelName;
               row.getCell(6).value = releaseData.upc || '';
@@ -1010,7 +1033,7 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
               row.getCell(35).value = getExportLabel(track.trackGenre);
               row.getCell(36).value = track.publishers.join('|');
               row.getCell(37).value = '';
-              row.getCell(38).value = track.audioFile?.name || '';
+              row.getCell(38).value = getExportFilename(track, index);
               row.getCell(39).value = explicitContent;
               row.getCell(40).value = 'N';
               row.getCell(41).value = releaseData.albumCLine;
@@ -1051,12 +1074,9 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
         if (tracks[i].audioFile) {
           audioProgress += (40 / tracks.length);
           setExportProgress(Math.round(audioProgress));
-          
-          const trackNumber = String(i + 1).padStart(2, '0');
-          const sanitizedTitle = tracks[i].title.replace(/[^a-z0-9]/gi, '_');
-          const extension = tracks[i].audioFile!.name.split('.').pop();
-          const filename = `${trackNumber}_${sanitizedTitle}.${extension}`;
-          
+
+          // Use the same helper function to ensure filename matches metadata
+          const filename = getExportFilename(tracks[i], i);
           zip.file(filename, tracks[i].audioFile!);
         }
       }
@@ -1266,7 +1286,7 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
           <div>
             <h4 className="font-medium text-gray-900 mb-1">Submit Your Release</h4>
             <p className="text-sm text-gray-700">
-              Please send your downloaded package to <strong className="text-orange-800">submissions@xelondigital.com</strong>
+              Please upload your downloaded package to Google Drive, Dropbox etc. and send a link to  <strong className="text-orange-800">submissions@xelondigital.com</strong>
             </p>
           </div>
 
@@ -1380,7 +1400,7 @@ const ExportStep = ({ releaseData, tracks, exportComplete, onExportComplete }: E
 
 <DialogDescription className="text-center space-y-4 pt-4">
   <p className="text-base">
-    Please send to <strong>submissions@xelondigital.com</strong>
+    Please upload to Google Drive, Dropbox etc. and send a link to <strong>submissions@xelondigital.com</strong>
   </p>
 
   <p className="text-base">
