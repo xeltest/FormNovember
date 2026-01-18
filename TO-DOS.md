@@ -3,8 +3,11 @@
 ## Pending Tasks
 
 
-
 ## Completed Tasks
+
+### ✅ Add Release Type Toggle (Single/EP/Album) - Completed 2026-01-15
+
+- **Add radial toggle for release type selection** - Implement a three-way toggle with Single/EP/Album options on the release page with polished UI. **Status:** COMPLETED - Created ReleaseTypeToggle component using shadcn ToggleGroup. Single selection auto-populates Track 1 when navigating to Tracks page. Export Title Type uses conditional logic (EP with ≤3 tracks→Single, EP with ≥4 tracks→Album). **Files modified:** `src/components/ReleaseTypeToggle.tsx` (new), `src/pages/Index.tsx`, `src/components/ReleaseInfo.tsx`, `src/components/ExportStep.tsx`. **Plan:** `.planning/release-type-toggle-PLAN.md`.
 
 ### ✅ Add Tooltips to Territory Section - Completed 2026-01-08
 
@@ -83,3 +86,9 @@
 ### Fix Duplicate Track Button Behavior - 2026-01-14 01:09
 
 - **Change Duplicate Track button to copy metadata TO current track instead of creating new track** - Modify the "Duplicate Track" button functionality to copy track metadata FROM a selected track TO the current track, similar to how "Copy From Release Info" works. **Problem:** Currently when clicking "Duplicate Track" button, it creates a NEW track using the selected track as a template. The desired behavior is to populate the CURRENT track's fields with metadata from another existing track, not create a new track. Should work like "Copy From Release Info" but for track-to-track copying. **Files:** `src/components/CopyTrackModal.tsx`, `src/components/TrackForm.tsx`, `src/pages/Index.tsx`. **Solution:** Modify the modal and its handler to copy metadata from the selected source track into the current track's form fields instead of calling the "add new track" functionality with copied data.
+
+
+
+---
+
+

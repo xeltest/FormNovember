@@ -6,6 +6,13 @@ Additionally, remove the two buttons up the top, "add Blank Track" and "Duplicat
 4) Remove the weird helper text in UPC
 
 5) Weird Bug IN the duplicate Track button where it creates a duplicate, doesnt duplicate a brand new track.
+
+
 6) Flag if Single or Ep/Album. If Single, Copy release info to the track.
 
+
 7) Add Some validation so same titled tracks cant be released without variations to title
+
+8) "Please UPLOAD your file to Google Drive/Dropbox etc, and send email a link to submissions@xelondigital.com"
+
+9) Change file names

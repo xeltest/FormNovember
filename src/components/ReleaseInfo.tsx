@@ -14,6 +14,7 @@ import { validateImageFile } from '@/lib/fileValidation';
 import { FieldTooltip } from '@/components/ui/FieldTooltip';
 import TerritorySelector from '@/components/territory/TerritorySelector';
 import { useToast } from '@/components/ui/use-toast';
+import ReleaseTypeToggle from '@/components/ReleaseTypeToggle';
 
 interface ReleaseInfoProps {
   data: ReleaseData;
@@ -175,6 +176,14 @@ const ReleaseInfo = ({ data, onChange, onImport, showValidation }: ReleaseInfoPr
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-foreground">Release Information</h2>
         <ImportFromZip onImport={onImport} />
+      </div>
+
+      {/* Release Type Selection */}
+      <div className="flex justify-center py-2">
+        <ReleaseTypeToggle
+          value={data.releaseType || 'single'}
+          onChange={(value) => updateData({ releaseType: value })}
+        />
       </div>
 
       {/* Release Identification */}

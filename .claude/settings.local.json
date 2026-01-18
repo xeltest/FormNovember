@@ -28,7 +28,9 @@
       "mcp__ide__getDiagnostics",
       "Bash(git commit:*)",
       "Bash([ -f .planning/track-duplication-ui-reorganization-SUMMARY.md ])",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "Skill(run-prompt)",
+      "Bash(Tech House\"\\)\n- Highlights matching text in results\n- Keyboard navigation \\(arrows, Enter, Escape\\)\n- Click outside to close\n- Selecting result populates hierarchical selectors\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []

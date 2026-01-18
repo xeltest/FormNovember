@@ -32,6 +32,7 @@ export interface ReleaseData {
   isWorldwide: boolean;
   territoryMode?: 'include' | 'exclude';
   territories: string[];
+  releaseType: 'single' | 'ep' | 'album';
 }
 
 export interface TrackData {
@@ -77,7 +78,8 @@ const Index = () => {
     albumCLine: '',
     albumPLine: '',
     isWorldwide: true,
-    territories: []
+    territories: [],
+    releaseType: 'single'
   },
   {
     serialize: serializeReleaseData,
@@ -184,6 +186,20 @@ const Index = () => {
 
   const handleNext = () => {
     if (canProceed(currentStep) && currentStep < 4) {
+      // Auto-populate Track 1 for singles when leaving Release Info
+      if (currentStep === 1 && releaseData.releaseType === 'single') {
+        const updatedTrack = {
+          ...tracks[0],
+          title: releaseData.title,
+          mixVersion: releaseData.mixVersion,
+          artists: [...releaseData.artists],
+          featuredArtists: releaseData.featuredArtists.map(a => ({ ...a })),
+          remixers: releaseData.remixers.map(r => ({ ...r }))
+        };
+        const newTracks = [...tracks];
+        newTracks[0] = updatedTrack;
+        setTracks(newTracks);
+      }
       setCurrentStep(currentStep + 1);
       setAttemptedProceed(false); // Reset validation attempt when successfully moving to next step
     } else {
